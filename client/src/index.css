@@ -1,0 +1,145 @@
+:root {
+  --bg: #050d1f;
+  --bg-deep: #020814;
+  --surface: rgba(16, 22, 38, 0.82);
+  --surface-2: rgba(22, 31, 48, 0.94);
+  --border: rgba(132, 165, 220, 0.18);
+  --text: #edf5ff;
+  --text-muted: #9aa9c6;
+
+  --accent-beacon: #7bd7ff;
+  --accent-beacon-dim: rgba(123, 215, 255, 0.18);
+  --accent-signal: #7bd7ff;
+  --accent-signal-dim: rgba(123, 215, 255, 0.22);
+  --accent-violet: #a78bfa;
+  --accent-violet-dim: rgba(167, 139, 250, 0.16);
+  --accent-gradient: linear-gradient(135deg, #7bd7ff 0%, #8b7cf6 100%);
+  --danger: #ff7d7d;
+  --danger-dim: rgba(255, 125, 125, 0.2);
+  --success: #74f0bb;
+  --success-dim: rgba(116, 240, 187, 0.18);
+
+  --font-display: "Segoe UI", "Inter", sans-serif;
+  --font-body: "Segoe UI", "Inter", sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, monospace;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+
+  --sidebar-width: 220px;
+
+  /* iOS safe-area insets — 0 as a fallback on browsers without notch/home-indicator support */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top, rgba(123, 215, 255, 0.18), transparent 24%),
+    radial-gradient(circle at 80% 100%, rgba(167, 139, 250, 0.14), transparent 30%),
+    linear-gradient(180deg, #060d1b 0%, #020814 100%);
+  color: var(--text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+  touch-action: pan-y;
+}
+
+button,
+input {
+  -webkit-user-select: none;
+  user-select: none;
+}
+input {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+@keyframes bg-drift {
+  0%,
+  100% {
+    background-position: 50% 0%;
+  }
+  50% {
+    background-position: 46% 8%;
+  }
+}
+
+button {
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: var(--accent-signal-dim);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-signal);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+/* ===== LIGHT THEME ===== */
+[data-theme="light"] {
+  --bg: #eef4ff;
+  --bg-deep: #e2eaf8;
+  --surface: rgba(255, 255, 255, 0.9);
+  --surface-2: rgba(240, 245, 255, 0.95);
+  --border: rgba(40, 70, 120, 0.18);
+  --text: #0b1626;
+  --text-muted: #5a6b86;
+
+  --accent-beacon: #0e7bd6;
+  --accent-beacon-dim: rgba(14, 123, 214, 0.14);
+  --accent-signal: #0e7bd6;
+  --accent-signal-dim: rgba(14, 123, 214, 0.16);
+  --accent-violet: #7c5cf0;
+  --accent-violet-dim: rgba(124, 92, 240, 0.14);
+  --accent-gradient: linear-gradient(135deg, #0e7bd6 0%, #7c5cf0 100%);
+  --danger: #e5484d;
+  --danger-dim: rgba(229, 72, 77, 0.16);
+  --success: #0f9d6b;
+  --success-dim: rgba(15, 157, 107, 0.16);
+}
+
+[data-theme="light"] body {
+  background:
+    radial-gradient(circle at top, rgba(14, 123, 214, 0.14), transparent 24%),
+    radial-gradient(circle at 80% 100%, rgba(124, 92, 240, 0.12), transparent 30%),
+    linear-gradient(180deg, #eef4ff 0%, #e2eaf8 100%);
+  color: var(--text);
+}

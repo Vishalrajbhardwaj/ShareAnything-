@@ -1,0 +1,104 @@
+.settings-view {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.settings-card {
+  width: min(520px, 100%);
+  background: rgba(12, 28, 25, 0.94);
+  border-color: rgba(122, 226, 207, 0.12);
+  padding: 24px 20px 18px;
+}
+
+.settings-card--compact {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.settings-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-card__head--profile {
+  gap: 12px;
+  justify-content: flex-start;
+}
+
+.profile-picker__avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  border: 1px solid rgba(122, 226, 207, 0.2);
+  background: rgba(122, 226, 207, 0.12);
+  font-size: 26px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.profile-picker__name {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 11px 14px;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.settings-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.settings-card__icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.settings-card__avatars {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.avatar-swatch {
+  aspect-ratio: 1;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  font-size: 19px;
+  cursor: pointer;
+}
+.avatar-swatch:hover {
+  border-color: rgba(122, 226, 207, 0.45);
+}
+.avatar-swatch--active {
+  background: rgba(122, 226, 207, 0.18);
+  border-color: rgba(122, 226, 207, 0.7);
+  color: var(--text);
+}
+
+@media (max-width: 560px) {
+  .settings-card__head--profile {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-picker__name {
+    width: 100%;
+  }
+}

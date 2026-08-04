@@ -1,0 +1,114 @@
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 50% 30%, #191a3a 0%, var(--bg) 60%, var(--bg-deep) 100%);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.splash--leaving {
+  opacity: 0;
+  transform: scale(1.03);
+  pointer-events: none;
+}
+
+.splash__rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 260px;
+  height: 260px;
+  transform: translate(-50%, -50%);
+  margin-bottom: 120px;
+}
+
+.splash__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid var(--accent-signal-dim);
+  animation: splash-ring-pulse 3.2s ease-out infinite;
+}
+.splash__ring--2 {
+  animation-delay: 1s;
+}
+.splash__ring--3 {
+  animation-delay: 2s;
+}
+
+@keyframes splash-ring-pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.splash__mark {
+  position: relative;
+  z-index: 1;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  background: var(--accent-gradient);
+  box-shadow: 0 0 60px -6px var(--accent-beacon), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  margin-bottom: 28px;
+  animation: splash-mark-float 3.6s ease-in-out infinite;
+}
+
+.splash__mark-icon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.splash__mark-loader {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
+  animation: splash-mark-spin 1s linear infinite;
+}
+
+@keyframes splash-mark-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes splash-mark-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.splash__title {
+  position: relative;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-size: 26px;
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash__ring,
+  .splash__mark,
+  .splash__mark-loader {
+    animation: none;
+  }
+}

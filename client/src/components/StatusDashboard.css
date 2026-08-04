@@ -1,0 +1,123 @@
+/* === STATUS DASHBOARD — ALWAYS VISIBLE ON FRONT PAGE === */
+.status-dashboard {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 520px;
+  margin: 4px auto 20px;
+  padding: 0 8px;
+}
+
+.status-card {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.25s ease;
+}
+
+.status-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.status-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-card__label {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-card__icon {
+  font-size: 14px;
+}
+
+.status-card__count {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: var(--font-display);
+  background: linear-gradient(135deg, #f1efe9 30%, #8b90b3);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+.status-card__sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.status-card--active .status-card__count {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Small progress bar for each card */
+.status-card__bar {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.status-card__bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent-gradient);
+  transition: width 0.3s ease;
+}
+
+/* Tooltip style for active transfer info */
+.status-card__tooltip {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Responsive: stack on small phones */
+@media (max-width: 480px) {
+  .status-dashboard {
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 4px;
+  }
+
+  .status-card {
+    padding: 10px 14px;
+  }
+
+  .status-card__header {
+    width: 100%;
+  }
+
+  .status-card__sub,
+  .status-card__bar {
+    display: none; /* keep the compact mobile row to just label + count */
+  }
+
+  .status-card__count {
+    font-size: 18px;
+  }
+}

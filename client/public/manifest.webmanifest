@@ -1,0 +1,12 @@
+{
+  "name": "Share Anything Anywhere",
+  "short_name": "ShareNow",
+  "description": "Send files directly between devices — no cloud, no accounts, no size limits.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0c1c",
+  "theme_color": "#0f1226",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

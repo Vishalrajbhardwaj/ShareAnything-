@@ -1,0 +1,223 @@
+.app-shell {
+  position: relative;
+  min-height: 100%;
+  display: flex;
+  background: linear-gradient(180deg, rgba(8, 12, 22, 0.98), rgba(4, 9, 17, 0.98));
+}
+
+.app-workbench {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-topbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 20px 28px 0;
+}
+
+.app-topbar__spacer {
+  flex: 1;
+}
+
+.app-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-topbar__icon-button,
+.app-topbar__profile {
+  border: 1px solid rgba(123, 215, 255, 0.14);
+  background: rgba(12, 18, 30, 0.8);
+  color: var(--text);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.app-topbar__icon-button {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.app-topbar__profile {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 10px;
+}
+
+.app-topbar__profile--active {
+  border-color: rgba(122, 226, 207, 0.32);
+  box-shadow: 0 16px 36px -24px rgba(122, 226, 207, 0.9);
+}
+
+.app-topbar__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(123, 215, 255, 0.2), rgba(167, 139, 250, 0.18));
+  border: 1px solid rgba(123, 215, 255, 0.18);
+  font-size: 14px;
+}
+
+.app-topbar__name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.app-topbar__gear {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.app-shell::before {
+  content: "";
+  position: fixed;
+  left: -8%;
+  bottom: 12%;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: rgba(123, 215, 255, 0.08);
+  filter: blur(44px);
+  pointer-events: none;
+  animation: ambientFloat 12s ease-in-out infinite alternate;
+}
+
+.app-shell::after {
+  content: "";
+  position: fixed;
+  right: 5%;
+  top: 8%;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  background: rgba(167, 139, 250, 0.06);
+  filter: blur(40px);
+  pointer-events: none;
+  animation: ambientFloat 14s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes ambientFloat {
+  0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.7; }
+  100% { transform: translate3d(12px, -20px, 0) scale(1.15); opacity: 1; }
+}
+
+.app-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 28px calc(24px + var(--safe-right)) calc(90px + var(--safe-bottom)) calc(24px + var(--safe-left));
+  width: 100%;
+}
+
+.app-tagline {
+  max-width: 460px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin: 6px 0 28px;
+}
+
+.radar {
+  margin-bottom: 36px;
+}
+
+/* Shared card surface used by every "view" (Radar/Transfers/Invite/Settings) */
+.page-card {
+  position: relative;
+  background: linear-gradient(180deg, rgba(18, 28, 45, 0.9), rgba(12, 18, 30, 0.9));
+  border: 1px solid rgba(123, 215, 255, 0.14);
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: 0 28px 80px -38px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(12px);
+  animation: cardIn 0.5s ease-out both;
+}
+
+.page-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, rgba(123, 215, 255, 0.08), transparent 35%, rgba(167, 139, 250, 0.08));
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (min-width: 881px) {
+  .app-main {
+    padding: 32px 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-main {
+    padding-left: calc(14px + var(--safe-left));
+    padding-right: calc(14px + var(--safe-right));
+    padding-top: 14px;
+  }
+
+  .radar {
+    margin-bottom: 24px;
+  }
+}
+
+/* ===== LIGHT THEME OVERRIDES ===== */
+[data-theme="light"] .app-shell {
+  background: linear-gradient(180deg, rgba(238, 244, 255, 0.98), rgba(226, 234, 248, 0.98));
+}
+
+[data-theme="light"] .app-topbar__icon-button,
+[data-theme="light"] .app-topbar__profile {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(40, 70, 120, 0.16);
+  color: var(--text);
+}
+
+[data-theme="light"] .app-topbar__avatar {
+  background: linear-gradient(135deg, rgba(14, 123, 214, 0.18), rgba(124, 92, 240, 0.16));
+  border-color: rgba(14, 123, 214, 0.22);
+}
+
+[data-theme="light"] .app-shell::before {
+  background: rgba(14, 123, 214, 0.1);
+}
+
+[data-theme="light"] .app-shell::after {
+  background: rgba(124, 92, 240, 0.08);
+}

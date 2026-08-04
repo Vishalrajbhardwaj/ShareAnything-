@@ -1,0 +1,282 @@
+/* ===== DESKTOP SIDEBAR ===== */
+.app-nav--sidebar {
+  display: none;
+}
+
+@media (min-width: 881px) {
+  .app-nav--sidebar {
+    display: flex;
+    flex-direction: column;
+    width: var(--sidebar-width, 260px);
+    min-width: var(--sidebar-width, 260px);
+    height: 100vh;
+    position: sticky;
+    top: 0;
+    background: rgba(8, 14, 26, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 24px 16px;
+    box-sizing: border-box;
+    z-index: 100;
+  }
+}
+
+/* Brand Header */
+.app-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 8px 24px;
+}
+
+.app-nav__brand-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(123, 215, 255, 0.25), rgba(167, 139, 250, 0.2));
+  border: 1px solid rgba(123, 215, 255, 0.35);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 0 20px rgba(123, 215, 255, 0.2);
+}
+
+.app-nav__brand-name {
+  font-family: var(--font-display, system-ui, sans-serif);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+/* Nav Menu List */
+.app-nav__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.app-nav__item {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.app-nav__item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  transform: translateX(3px);
+}
+
+.app-nav__item:active {
+  transform: translateX(1px);
+}
+
+.app-nav__item--active {
+  background: linear-gradient(90deg, rgba(123, 215, 255, 0.15), rgba(167, 139, 250, 0.08));
+  color: #fff;
+  border-color: rgba(123, 215, 255, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.app-nav__item-icon {
+  font-size: 18px;
+}
+
+.app-nav__active-pill {
+  position: absolute;
+  right: 12px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #7bd7ff;
+  box-shadow: 0 0 8px #7bd7ff;
+}
+
+/* Activity Summary Section */
+.app-nav__activity {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 14px;
+  margin-top: auto;
+}
+
+.app-nav__activity-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.app-nav__activity-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+.app-nav__activity-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #38ef7d;
+  background: rgba(56, 239, 125, 0.12);
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(56, 239, 125, 0.2);
+}
+
+.app-nav__activity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-nav__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.app-nav__stat-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.app-nav__activity-count {
+  font-family: var(--font-display, system-ui, sans-serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.app-nav__activity-count.highlight {
+  color: #7bd7ff;
+}
+
+.app-nav__activity-name {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2px;
+}
+
+/* Connection Status Bar */
+.app-nav__connection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 16px;
+  padding: 0 4px;
+}
+
+.app-nav__connection-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #38ef7d;
+  box-shadow: 0 0 10px #38ef7d;
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* ===== MOBILE BOTTOM TAB BAR ===== */
+.app-nav--bottom {
+  display: flex;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background: rgba(10, 18, 30, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 6px calc(12px + var(--safe-left, 0px)) calc(6px + var(--safe-bottom, 0px)) calc(12px + var(--safe-right, 0px));
+}
+
+@media (min-width: 881px) {
+  .app-nav--bottom {
+    display: none;
+  }
+}
+
+.app-nav__tab {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 8px 4px;
+  cursor: pointer;
+  outline: none;
+  transition: color 0.2s ease;
+}
+
+.app-nav__tab-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.app-nav__tab-icon {
+  font-size: 18px;
+}
+
+.app-nav__tab-label {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.app-nav__tab--active {
+  color: #7bd7ff;
+}
+
+.app-nav__tab--active .app-nav__tab-content {
+  transform: translateY(-2px);
+}
+
+.app-nav__tab-indicator {
+  position: absolute;
+  bottom: 0;
+  width: 24px;
+  height: 3px;
+  border-radius: 3px 3px 0 0;
+  background: #7bd7ff;
+  box-shadow: 0 0 10px #7bd7ff;
+}
