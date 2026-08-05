@@ -15,10 +15,12 @@
     background: rgba(8, 14, 26, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
+border-right: 1px solid rgba(255, 255, 255, 0.08);
     padding: 24px 16px;
     box-sizing: border-box;
-    z-index: 100;
+    /* Keep the sidebar above modal backdrops (ProfileModal uses z-index: 200)
+       so nav items remain clickable while a modal is open. */
+    z-index: 300;
   }
 }
 
