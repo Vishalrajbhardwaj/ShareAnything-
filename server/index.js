@@ -25,6 +25,7 @@ if (process.env.TURN_URL && process.env.TURN_USERNAME && process.env.TURN_CREDEN
 
 const app = express();
 app.set("trust proxy", true); // respect X-Forwarded-For when deployed behind a proxy/load balancer
+app.disable("x-powered-by"); // don't advertise Express to the outside world
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -205,6 +206,19 @@ socket.emit("joined", { self, roomId, peers: peerList(roomId, socket.id), pendin
 
 // In production, serve the built client so the whole app is a single process.
 const clientDist = path.join(__dirname, "..", "client", "dist");
+
+// Security & response headers for every request.
+app.use((req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  next();
+});
+
+// Serve the manifest with an explicit charset so Lighthouse/browsers are happy.
+app.get("/manifest.webmanifest", (req, res) => {
+  res.set("Content-Type", "application/manifest+json; charset=utf-8");
+  res.sendFile(path.join(clientDist, "manifest.webmanifest"));
+});
+
 app.use(express.static(clientDist));
 app.get("*", (req, res, next) => {
   if (req.path.startsWith("/socket.io")) return next();
