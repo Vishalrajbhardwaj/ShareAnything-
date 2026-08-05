@@ -1,20 +1,22 @@
-// Fun Indian cartoon-style character avatars — modern & colorful!
+// Fun Avengers & Harry Potter themed emoji avatars — match the random device
+// identities so everyone can pick a character that fits their vibe.
 export const AVATARS = [
-  '🧑‍🎤',  // Singer
-  '🤡',    // Clown
-  '👨‍🍳',  // Chef
-  '👩‍🔬',  // Scientist
-  '🧑‍🚀',  // Astronaut
-  '🕵️',   // Detective
-  '🧑‍🏫',  // Teacher
-  '👨‍🎨',  // Artist
-  '🧑‍🤝‍🧑', // People
-  '🧑‍🦰',  // Person Red Hair
-  '🥷',    // Ninja
-  '🤴',    // Prince
-  '👸',    // Princess
-  '🧞',    // Genie
-  '🧝',    // Elf
+  '🤖',    // Iron Man / Robot
+  '🦸',    // Superhero
+  '🛡️',    // Captain America Shield
+  '🔨',    // Thor Hammer
+  '🕷️',    // Spider-Man
+  '⚡',    // Lightning (Scarlet Witch / magic)
+  '🔮',    // Crystal Ball (Doctor Strange)
+  '🐍',    // Snake (Slytherin / Voldemort)
+  '🪄',    // Magic Wand (Harry Potter)
+  '🦉',    // Owl (Hedwig)
+  '🦁',    // Lion (Gryffindor)
+  '🦅',    // Eagle (Ravenclaw)
+  '🦡',    // Badger (Hufflepuff)
+  '🥷',    // Ninja (Black Widow / Hawkeye style)
+  '👾',    // Alien (Star-Lord)
+  '💥',    // Boom (Hulk / War Machine)
 ];
 
 export function avatarColor(value) {
