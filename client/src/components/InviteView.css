@@ -6,7 +6,7 @@
 }
 
 .invite-view__card {
-  width: min(420px, 100%);
+  width: min(760px, 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
