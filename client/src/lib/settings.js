@@ -5,6 +5,7 @@ const KEY = "sa_prefs_v1";
 
 const DEFAULTS = {
   sound: true,
+  soundTheme: "classic",
   autoAccept: false,
   notifications: true,
 };

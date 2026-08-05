@@ -20,7 +20,7 @@ import { getFavorites } from "./lib/favorites.js";
 import { getHistory, addHistoryEntry } from "./lib/history.js";
 import { addChatMessage } from "./lib/chat.js";
 import { getPrefs } from "./lib/settings.js";
-import { playRequestSound } from "./lib/sounds.js";
+import { playTheme } from "./lib/sounds.js";
 import { notify } from "./lib/notifications.js";
 import "./App.css";
 
@@ -198,8 +198,8 @@ window.addEventListener("paste", onPaste);
       if (view !== "chat" || activeChatPeerRef.current !== msg.fromName) {
         setUnreadChat((n) => n + 1);
       }
-      const prefs = getPrefs();
-      if (prefs.sound) playRequestSound();
+const prefs = getPrefs();
+      if (prefs.sound) playTheme(prefs.soundTheme, "request");
       if (prefs.notifications) {
         notify(`${msg.fromName}`, { body: msg.text.slice(0, 80) });
       }

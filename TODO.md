@@ -15,4 +15,9 @@
 - [x] Send page redesign (full page, not modal)
 - [x] Build client + verify
 - [x] Unread chat badge + real-time chat update
+- [x] Fix real-time chat update + unread count badge
+- [x] Make Send / Invite / Chat views full-page (not narrow modals)
+- [x] Fix sounds not playing (unlock AudioContext on first user gesture)
+- [x] Add 6 selectable sound themes (Classic, Chime, Digital, Retro, Gentle, Tech) with preview + settings picker
+- [x] Build client + verify after sound/layout changes
 - [x] Commit & push to GitHub

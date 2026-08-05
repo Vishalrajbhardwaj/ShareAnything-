@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { sendFiles, createReceiver, triggerDownload, formatSpeed, formatEta } from "../lib/fileTransfer.js";
 import { getPrefs } from "../lib/settings.js";
 import { isFavorite } from "../lib/favorites.js";
-import { playRequestSound, playCompleteSound } from "../lib/sounds.js";
+import { playTheme } from "../lib/sounds.js";
 import { notify } from "../lib/notifications.js";
 import { isImageFileName } from "../components/ImagePreview.jsx";
 
@@ -375,7 +375,7 @@ onFileComplete: ({ fileId, name, blob }) => {
             patchTransfer(transferId, { status: "done" });
             const prefs = getPrefs();
             const t = transfersRef.current.find((x) => x.id === transferId);
-            if (prefs.sound) playCompleteSound();
+if (prefs.sound) playTheme(prefs.soundTheme, "complete");
             if (prefs.notifications && t) {
               notify(`Transfer complete`, { body: `${t.peerName} — ${t.files.length} file${t.files.length === 1 ? "" : "s"} received.` });
             }
@@ -420,7 +420,7 @@ const onTransferRequest = ({ fromId, fromName, fromAvatar, requestId, files }) =
       const prefs = getPrefs();
       if (!notifiedRequestIds.current.has(requestId)) {
         notifiedRequestIds.current.add(requestId);
-        if (prefs.sound) playRequestSound();
+if (prefs.sound) playTheme(prefs.soundTheme, "request");
         if (prefs.notifications) {
           notify(`${fromName} wants to send you ${files.length === 1 ? "a file" : `${files.length} files`}`, {
             body: files.map((f) => f.name).join(", ").slice(0, 80),

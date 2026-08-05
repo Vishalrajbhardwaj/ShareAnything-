@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AVATARS, avatarColor } from "../lib/avatars.js";
 import { getPrefs, setPref } from "../lib/settings.js";
 import { requestNotificationPermission } from "../lib/notifications.js";
+import { SOUND_THEMES, playTheme } from "../lib/sounds.js";
 import "./ProfileModal.css";
 
 const THEME_KEY = "saa-theme";
@@ -253,7 +254,7 @@ const [notifications, setNotifications] = useState(() => {
                 <p className="settings-row__title">Sound Alerts</p>
                 <p className="settings-row__sub">Play a sound for incoming and completed transfers</p>
               </div>
-              <button
+<button
                 className={`switch ${prefs.sound ? "switch--on" : ""}`}
                 onClick={() => togglePref("sound")}
                 role="switch"
@@ -262,6 +263,48 @@ const [notifications, setNotifications] = useState(() => {
               >
                 <span className="switch__knob" />
               </button>
+            </div>
+
+            {/* Sound theme picker */}
+            <div className="settings-row settings-row--stack">
+              <span className="settings-row__ic">🎵</span>
+              <div className="settings-row__text">
+                <p className="settings-row__title">Sound Theme</p>
+                <p className="settings-row__sub">Pick a sound for alerts &amp; tap ▶ to preview</p>
+              </div>
+              <div className="sound-theme-list">
+                {SOUND_THEMES.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    className={`sound-theme ${prefs.soundTheme === s.id ? "sound-theme--active" : ""}`}
+                    onClick={() => setPrefsState(setPref("soundTheme", s.id))}
+                    aria-pressed={prefs.soundTheme === s.id}
+                  >
+                    <span className="sound-theme__icon">{s.icon}</span>
+                    <span className="sound-theme__label">{s.label}</span>
+                    <span
+                      className="sound-theme__preview"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Preview ${s.label} sound`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        playTheme(s.id, "preview");
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          playTheme(s.id, "preview");
+                        }
+                      }}
+                    >
+                      ▶
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Auto-accept from favorites */}
