@@ -262,8 +262,12 @@ const prefs = getPrefs();
     <div className="app-shell">
 <AppNav
         view={view}
-        onChangeView={(next) => {
+onChangeView={(next) => {
           setView(next);
+          // Close any open overlay (Profile/Settings, History, etc.) so the
+          // selected view is visible instead of being hidden behind a modal.
+          setProfileOpen(false);
+          setHistoryOpen(false);
           if (next === "chat") setUnreadChat(0);
         }}
         stats={activityStats}
