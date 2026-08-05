@@ -164,12 +164,27 @@ socket.emit("joined", { self, roomId, peers: peerList(roomId, socket.id), pendin
     if (share) socket.emit("share-updated", share);
   });
 
-  // A visitor clicked "Download" on the share modal. Forward the request to the
+// A visitor clicked "Download" on the share modal. Forward the request to the
   // link owner (the one who queued the files) so they can send the actual bytes.
   socket.on("share-download-request", () => {
     const share = pendingShares.get(roomId);
     if (!share || share.senderId === socket.id) return;
     io.to(share.senderId).emit("share-download-request", { fromId: socket.id, fromName: self.name });
+  });
+
+  // Chat message relay — the server only forwards the small JSON envelope between
+  // two peers; it never stores or inspects message content.
+  socket.on("chat-message", ({ toId, text }) => {
+    if (!toId || typeof text !== "string") return;
+    const clean = String(text).slice(0, 2000);
+    if (!clean.trim()) return;
+    io.to(toId).emit("chat-message", { fromId: socket.id, fromName: self.name, fromAvatar: self.avatar, text: clean });
+  });
+
+  // "Typing" indicator relay (best-effort, tiny payload).
+  socket.on("chat-typing", ({ toId }) => {
+    if (!toId) return;
+    io.to(toId).emit("chat-typing", { fromId: socket.id, fromName: self.name });
   });
 
   socket.on("disconnect", () => {

@@ -4,6 +4,7 @@ import "./AppNav.css";
 const ITEMS = [
   { id: "receive", icon: "📡", label: "Receive" },
   { id: "send", icon: "📤", label: "Send" },
+  { id: "chat", icon: "💬", label: "Chat" },
   { id: "invite", icon: "🔗", label: "Invite" },
 ];
 

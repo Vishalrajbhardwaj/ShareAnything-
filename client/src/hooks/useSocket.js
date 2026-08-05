@@ -26,8 +26,10 @@ function saveProfile(profile) {
 }
 
 export function useSocket() {
-  const socketRef = useRef(null);
+const socketRef = useRef(null);
   const onShareDownloadRequestRef = useRef(null);
+  const onChatMessageRef = useRef(null);
+  const onChatTypingRef = useRef(null);
   const [connected, setConnected] = useState(false);
   const [self, setSelf] = useState(null);
   const [roomId, setRoomId] = useState(null);
@@ -86,8 +88,16 @@ socket.on("share-updated", (share) => {
       setPeers((prev) => prev.map((p) => (p.id === peer.id ? peer : p)));
     });
 
-    socket.on("peer-left", ({ id }) => {
+socket.on("peer-left", ({ id }) => {
       setPeers((prev) => prev.filter((p) => p.id !== id));
+    });
+
+    // Chat events — relayed exactly as the server forwards them.
+    socket.on("chat-message", (msg) => {
+      if (typeof onChatMessageRef.current === "function") onChatMessageRef.current(msg);
+    });
+    socket.on("chat-typing", (msg) => {
+      if (typeof onChatTypingRef.current === "function") onChatTypingRef.current(msg);
     });
 
     return () => socket.disconnect();
@@ -155,9 +165,24 @@ return {
     setOnShareDownloadRequest: (handler) => {
       onShareDownloadRequestRef.current = handler;
     },
-    // Tell the link owner to send the queued files to this device (the visitor).
+// Tell the link owner to send the queued files to this device (the visitor).
     requestShareDownload: () => {
       socketRef.current?.emit("share-download-request");
+    },
+
+    // Chat API — send a message/typing ping to a specific peer, and register
+    // callbacks for incoming chat events (invoked by the socket listeners above).
+    sendChatMessage: (toId, text) => {
+      socketRef.current?.emit("chat-message", { toId, text });
+    },
+    sendChatTyping: (toId) => {
+      socketRef.current?.emit("chat-typing", { toId });
+    },
+    setOnChatMessage: (handler) => {
+      onChatMessageRef.current = handler;
+    },
+    setOnChatTyping: (handler) => {
+      onChatTypingRef.current = handler;
     },
   };
 }

@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { sendFiles, createReceiver, triggerDownload, formatSpeed, formatEta } from "../lib/fileTransfer.js";
+import { getPrefs } from "../lib/settings.js";
+import { isFavorite } from "../lib/favorites.js";
+import { playRequestSound, playCompleteSound } from "../lib/sounds.js";
+import { notify } from "../lib/notifications.js";
+import { isImageFileName } from "../components/ImagePreview.jsx";
 
 // Fallback used only if /ice-servers can't be reached (offline dev, etc.) — covers the
 // vast majority of home/office networks. The server can add a TURN entry via env vars
@@ -36,10 +41,12 @@ function newTransferId() {
 export function usePeerConnections(socket, self) {
   const [transfers, setTransfers] = useState([]); // UI-facing summaries
   const [incomingRequests, setIncomingRequests] = useState([]);
+  const [receivedImages, setReceivedImages] = useState([]); // { id, name, blob, size } for preview
 
   const runtime = useRef(new Map()); // transferId -> { pc, channel, role, peerId, iceQueue, remoteSet, watchdog }
   const pendingFiles = useRef(new Map()); // transferId -> { peerId, peerName, files: File[] } — kept until done/cancelled so a failed send can be retried
   const speedTrackers = useRef(new Map()); // fileId -> { lastBytes, lastAt, bytesPerSecond }
+  const notifiedRequestIds = useRef(new Set()); // avoid duplicate request notifications
 
   const patchTransfer = useCallback((id, patch) => {
     setTransfers((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
@@ -354,13 +361,24 @@ startRequest(pending.peerId, pending.peerName, pending.files, transferId);
               etaLabel: formatEta(size - received, bytesPerSecond),
             });
           },
-          onFileComplete: ({ fileId, name, blob }) => {
+onFileComplete: ({ fileId, name, blob }) => {
             speedTrackers.current.delete(fileId);
             patchFile(transferId, fileId, { done: true, speedLabel: "", etaLabel: "" });
             triggerDownload(blob, name);
+            // Offer an in-app preview for received images (before the download
+            // lands, the blob is already in memory).
+            if (isImageFileName(name)) {
+              setReceivedImages((prev) => [...prev, { id: `${fileId}-${Date.now()}`, name, blob, size: blob.size }]);
+            }
           },
           onAllDone: () => {
             patchTransfer(transferId, { status: "done" });
+            const prefs = getPrefs();
+            const t = transfersRef.current.find((x) => x.id === transferId);
+            if (prefs.sound) playCompleteSound();
+            if (prefs.notifications && t) {
+              notify(`Transfer complete`, { body: `${t.peerName} — ${t.files.length} file${t.files.length === 1 ? "" : "s"} received.` });
+            }
             setTimeout(() => cleanupTransfer(transferId), 2000);
           },
         });
@@ -384,7 +402,7 @@ startRequest(pending.peerId, pending.peerName, pending.files, transferId);
   useEffect(() => {
     if (!socket) return;
 
-    const onTransferRequest = ({ fromId, fromName, fromAvatar, requestId, files }) => {
+const onTransferRequest = ({ fromId, fromName, fromAvatar, requestId, files }) => {
       setIncomingRequests((prev) => [...prev, { requestId, fromId, fromName, fromAvatar, files }]);
       setTransfers((prev) => [
         {
@@ -397,6 +415,23 @@ startRequest(pending.peerId, pending.peerName, pending.files, transferId);
         },
         ...prev,
       ]);
+
+      // Sound + desktop notification for the incoming request (one per request).
+      const prefs = getPrefs();
+      if (!notifiedRequestIds.current.has(requestId)) {
+        notifiedRequestIds.current.add(requestId);
+        if (prefs.sound) playRequestSound();
+        if (prefs.notifications) {
+          notify(`${fromName} wants to send you ${files.length === 1 ? "a file" : `${files.length} files`}`, {
+            body: files.map((f) => f.name).join(", ").slice(0, 80),
+          });
+        }
+      }
+
+      // Auto-accept from ⭐ favorite devices when enabled.
+      if (prefs.autoAccept && isFavorite(fromName)) {
+        respondToRequest(requestId, fromId, true);
+      }
     };
 
     const onTransferCancel = ({ requestId }) => {
@@ -454,14 +489,16 @@ startRequest(pending.peerId, pending.peerName, pending.files, transferId);
     socket.on("signal", onSignal);
     socket.on("peer-left", onPeerLeft);
 
-    return () => {
+return () => {
       socket.off("transfer-request", onTransferRequest);
       socket.off("transfer-cancel", onTransferCancel);
       socket.off("transfer-response", onTransferResponse);
       socket.off("signal", onSignal);
       socket.off("peer-left", onPeerLeft);
     };
-  }, [socket, beginSending, prepareToReceive, patchTransfer]);
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [socket, beginSending, prepareToReceive, patchTransfer, respondToRequest]);
 
   // Warn before leaving the tab while a transfer is actively moving bytes.
   useEffect(() => {
@@ -476,5 +513,16 @@ startRequest(pending.peerId, pending.peerName, pending.files, transferId);
     return () => window.removeEventListener("beforeunload", onBeforeUnload);
   }, [transfers]);
 
-return { transfers, incomingRequests, sendFilesToPeer, respondToRequest, cancelTransfer, retryTransfer, removeTransfer, clearTransfers };
+return {
+    transfers,
+    incomingRequests,
+    receivedImages,
+    dismissImage: (id) => setReceivedImages((prev) => prev.filter((img) => img.id !== id)),
+    sendFilesToPeer,
+    respondToRequest,
+    cancelTransfer,
+    retryTransfer,
+    removeTransfer,
+    clearTransfers,
+  };
 }

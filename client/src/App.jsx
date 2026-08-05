@@ -14,13 +14,19 @@ import InviteView from "./components/InviteView.jsx";
 import HistoryPanel from "./components/HistoryPanel.jsx";
 import ShareDownloadModal from "./components/ShareDownloadModal.jsx";
 import Toast from "./components/Toast.jsx";
+import ChatView from "./components/ChatView.jsx";
+import ImagePreview from "./components/ImagePreview.jsx";
 import { getFavorites } from "./lib/favorites.js";
 import { getHistory, addHistoryEntry } from "./lib/history.js";
+import { addChatMessage } from "./lib/chat.js";
+import { getPrefs } from "./lib/settings.js";
+import { playRequestSound } from "./lib/sounds.js";
+import { notify } from "./lib/notifications.js";
 import "./App.css";
 
 export default function App() {
-  const { socket, connected, self, peers: rawPeers, netCode, pendingShare, updateProfile, setNetworkMode, updateShare, requestShareFiles, setOnShareDownloadRequest, requestShareDownload } = useSocket();
-  const { transfers, incomingRequests, sendFilesToPeer, respondToRequest, cancelTransfer, retryTransfer, removeTransfer, clearTransfers } = usePeerConnections(socket, self);
+const { socket, connected, self, peers: rawPeers, netCode, pendingShare, updateProfile, setNetworkMode, updateShare, requestShareFiles, setOnShareDownloadRequest, requestShareDownload, sendChatMessage, sendChatTyping, setOnChatMessage, setOnChatTyping } = useSocket();
+  const { transfers, incomingRequests, receivedImages, dismissImage, sendFilesToPeer, respondToRequest, cancelTransfer, retryTransfer, removeTransfer, clearTransfers } = usePeerConnections(socket, self);
 
 const [showSplash, setShowSplash] = useState(true);
   // If the app was opened via a share link (?net=CODE), start on the Invite
@@ -173,9 +179,70 @@ const activityStats = useMemo(() => {
         sendFilesToPeer(selectedPeer.id, selectedPeer.name, files);
       }
     }
-    window.addEventListener("paste", onPaste);
+window.addEventListener("paste", onPaste);
     return () => window.removeEventListener("paste", onPaste);
   }, [selectedPeer, sendFilesToPeer]);
+
+  // Incoming chat messages — persist them and show a toast + sound.
+  useEffect(() => {
+    setOnChatMessage((msg) => {
+      if (!msg || !msg.fromName || !msg.text) return;
+      addChatMessage(msg.fromName, { text: msg.text, from: "them" });
+      const prefs = getPrefs();
+      if (prefs.sound) playRequestSound();
+      if (prefs.notifications) {
+        notify(`${msg.fromName}`, { body: msg.text.slice(0, 80) });
+      }
+      setToastMsg(`${msg.fromName}: ${msg.text}`);
+    });
+    setOnChatTyping(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [setOnChatMessage, setOnChatTyping]);
+
+  // Global drag & drop — drop files anywhere to send to the selected device.
+  const dragDepth = useRef(0);
+  const [dragActive, setDragActive] = useState(false);
+  useEffect(() => {
+    function onDragEnter(e) {
+      if (!e.dataTransfer?.types?.includes("Files")) return;
+      e.preventDefault();
+      dragDepth.current += 1;
+      setDragActive(true);
+    }
+    function onDragOver(e) {
+      if (!e.dataTransfer?.types?.includes("Files")) return;
+      e.preventDefault();
+    }
+    function onDragLeave(e) {
+      if (!e.dataTransfer?.types?.includes("Files")) return;
+      e.preventDefault();
+      dragDepth.current = Math.max(0, dragDepth.current - 1);
+      if (dragDepth.current === 0) setDragActive(false);
+    }
+    function onDrop(e) {
+      e.preventDefault();
+      dragDepth.current = 0;
+      setDragActive(false);
+      const files = e.dataTransfer?.files;
+      if (!files || files.length === 0) return;
+      if (!selectedPeer) {
+        setToastMsg("Select a device on the radar first, then drop files.");
+        return;
+      }
+      sendFilesToPeer(selectedPeer.id, selectedPeer.name, files);
+      setToastMsg(`Sending ${files.length} file${files.length === 1 ? "" : "s"} to ${selectedPeer.name}…`);
+    }
+    window.addEventListener("dragenter", onDragEnter);
+    window.addEventListener("dragover", onDragOver);
+    window.addEventListener("dragleave", onDragLeave);
+    window.addEventListener("drop", onDrop);
+    return () => {
+      window.removeEventListener("dragenter", onDragEnter);
+      window.removeEventListener("dragover", onDragOver);
+      window.removeEventListener("dragleave", onDragLeave);
+      window.removeEventListener("drop", onDrop);
+    };
+  }, [selectedPeer, sendFilesToPeer, setToastMsg]);
 
   if (showSplash) {
     return <Splash onDone={() => setShowSplash(false)} />;
@@ -282,6 +349,16 @@ const activityStats = useMemo(() => {
               />
             )}
 
+{view === "chat" && (
+              <ChatView
+                peers={peers}
+                self={self}
+                onSendChatMessage={sendChatMessage}
+                onSendChatTyping={sendChatTyping}
+                onNotify={setToastMsg}
+              />
+            )}
+
 </main>
         </div>
       </div>
@@ -330,7 +407,30 @@ const activityStats = useMemo(() => {
         />
       )}
 
-      <Toast message={toastMsg} onClose={() => setToastMsg("")} />
+<Toast message={toastMsg} onClose={() => setToastMsg("")} />
+
+      {/* Image preview for received images */}
+      {receivedImages.length > 0 && (
+        <ImagePreview
+          blob={receivedImages[receivedImages.length - 1].blob}
+          name={receivedImages[receivedImages.length - 1].name}
+          size={receivedImages[receivedImages.length - 1].size}
+          onClose={() => dismissImage(receivedImages[receivedImages.length - 1].id)}
+        />
+      )}
+
+      {/* Drag & drop overlay */}
+      {dragActive && (
+        <div className="drag-overlay">
+          <div className="drag-overlay__inner">
+            <span className="drag-overlay__icon">📁</span>
+            <p className="drag-overlay__title">
+              {selectedPeer ? `Drop to send to ${selectedPeer.name}` : "Select a device first"}
+            </p>
+            <p className="drag-overlay__sub">Release to send files</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

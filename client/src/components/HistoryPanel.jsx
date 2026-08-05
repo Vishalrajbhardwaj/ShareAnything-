@@ -3,6 +3,39 @@ import { formatBytes } from "../lib/fileTransfer.js";
 import { clearHistory } from "../lib/history.js";
 import "./HistoryPanel.css";
 
+function downloadFile(content, filename, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function toCSV(entries) {
+  const header = ["Date", "File Name", "Size (bytes)", "Peer", "Direction"];
+  const rows = entries.map((e) =>
+    [new Date(e.at).toISOString(), `"${(e.fileName || "").replace(/"/g, '""')}"`, e.size ?? 0, `"${(e.peerName || "").replace(/"/g, '""')}"`, e.direction].join(",")
+  );
+  return [header.join(","), ...rows].join("\n");
+}
+
+function toJSON(entries) {
+  return JSON.stringify(entries, null, 2);
+}
+
+function exportEntries(entries, format) {
+  const stamp = new Date().toISOString().slice(0, 10);
+  if (format === "csv") {
+    downloadFile(toCSV(entries), `share-history-${stamp}.csv`, "text/csv;charset=utf-8");
+  } else {
+    downloadFile(toJSON(entries), `share-history-${stamp}.json`, "application/json");
+  }
+}
+
 function formatWhen(ts) {
   const d = new Date(ts);
   const now = new Date();
@@ -29,11 +62,23 @@ export default function HistoryPanel({ entries, onClose, onClear }) {
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="history-panel" onClick={(e) => e.stopPropagation()}>
-        <div className="history-panel__header">
+<div className="history-panel__header">
           <h2>History</h2>
-          <button className="panel-close" onClick={onClose} aria-label="Close">
-            ✕
-          </button>
+          <div className="history-panel__header-actions">
+            {entries.length > 0 && (
+              <>
+                <button type="button" className="history-export" onClick={() => exportEntries(entries, "csv")} title="Export as CSV">
+                  ⬇️ CSV
+                </button>
+                <button type="button" className="history-export" onClick={() => exportEntries(entries, "json")} title="Export as JSON">
+                  📄 JSON
+                </button>
+              </>
+            )}
+            <button className="panel-close" onClick={onClose} aria-label="Close">
+              ✕
+            </button>
+          </div>
         </div>
 
         <div className="history-panel__controls">

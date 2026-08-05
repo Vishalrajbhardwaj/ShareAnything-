@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { AVATARS, avatarColor } from "../lib/avatars.js";
+import { getPrefs, setPref } from "../lib/settings.js";
+import { requestNotificationPermission } from "../lib/notifications.js";
 import "./ProfileModal.css";
 
 const THEME_KEY = "saa-theme";
@@ -25,14 +27,20 @@ export default function ProfileModal({
   const [nameDraft, setNameDraft] = useState(self?.name ?? "");
   const [status, setStatus] = useState(self?.status ?? "Ready to share");
   const [theme, setTheme] = useState(loadTheme);
-  const [notifications, setNotifications] = useState(() => {
+const [notifications, setNotifications] = useState(() => {
     try {
       return localStorage.getItem(NOTIF_KEY) !== "off";
     } catch {
       return true;
     }
   });
+  const [prefs, setPrefsState] = useState(() => getPrefs());
   const [ip, setIp] = useState(null);
+
+  function togglePref(key) {
+    const next = !prefs[key];
+    setPrefsState(setPref(key, next));
+  }
 
   // Apply theme to <html> and persist it.
   useEffect(() => {
@@ -198,7 +206,7 @@ export default function ProfileModal({
               </button>
             </div>
 
-            {/* Notifications */}
+{/* Notifications */}
             <div className="settings-row">
               <span className="settings-row__ic">🔔</span>
               <div className="settings-row__text">
@@ -211,6 +219,64 @@ export default function ProfileModal({
                 role="switch"
                 aria-checked={notifications}
                 aria-label="Toggle notifications"
+              >
+                <span className="switch__knob" />
+              </button>
+            </div>
+
+            {/* Desktop Notifications */}
+            <div className="settings-row">
+              <span className="settings-row__ic">🖥️</span>
+              <div className="settings-row__text">
+                <p className="settings-row__title">Desktop Alerts</p>
+                <p className="settings-row__sub">System popups even when the tab is in the background</p>
+              </div>
+              <button
+                className={`switch ${prefs.notifications ? "switch--on" : ""}`}
+                onClick={() => {
+                  const next = !prefs.notifications;
+                  togglePref("notifications");
+                  if (next) requestNotificationPermission();
+                }}
+                role="switch"
+                aria-checked={prefs.notifications}
+                aria-label="Toggle desktop alerts"
+              >
+                <span className="switch__knob" />
+              </button>
+            </div>
+
+            {/* Sound alerts */}
+            <div className="settings-row">
+              <span className="settings-row__ic">🔊</span>
+              <div className="settings-row__text">
+                <p className="settings-row__title">Sound Alerts</p>
+                <p className="settings-row__sub">Play a sound for incoming and completed transfers</p>
+              </div>
+              <button
+                className={`switch ${prefs.sound ? "switch--on" : ""}`}
+                onClick={() => togglePref("sound")}
+                role="switch"
+                aria-checked={prefs.sound}
+                aria-label="Toggle sound alerts"
+              >
+                <span className="switch__knob" />
+              </button>
+            </div>
+
+            {/* Auto-accept from favorites */}
+            <div className="settings-row">
+              <span className="settings-row__ic">⚡</span>
+              <div className="settings-row__text">
+                <p className="settings-row__title">Auto-accept Favorites</p>
+                <p className="settings-row__sub">Automatically accept transfers from ⭐ favorite devices</p>
+              </div>
+              <button
+                className={`switch ${prefs.autoAccept ? "switch--on" : ""}`}
+                onClick={() => togglePref("autoAccept")}
+                role="switch"
+                aria-checked={prefs.autoAccept}
+                aria-label="Toggle auto-accept favorites"
               >
                 <span className="switch__knob" />
               </button>
