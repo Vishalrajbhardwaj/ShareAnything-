@@ -31,6 +31,10 @@ export default function TransferCompleteModal({ transfer, onViewFiles, onClose }
           ))}
         </ul>
 
+<p className="complete-saved-hint">
+          📁 Your files were saved to your browser's <strong>Downloads</strong> folder. Open your file manager to find them.
+        </p>
+
         <div className="modal-card__actions modal-card__actions--stacked">
           <button className="btn-primary btn-block" onClick={onViewFiles}>
             View Files

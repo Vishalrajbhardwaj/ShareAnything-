@@ -345,3 +345,80 @@
     width: 100%;
   }
 }
+
+/* ===== LIGHT THEME OVERRIDES ===== */
+[data-theme="light"] {
+  --glass-bg: rgba(255, 255, 255, 0.8);
+  --glass-border: rgba(40, 70, 120, 0.14);
+}
+
+[data-theme="light"] .radar {
+  background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.95) 0%, rgba(238, 244, 255, 0.98) 100%);
+  border: 1px solid rgba(14, 123, 214, 0.25);
+  box-shadow: 0 0 50px -10px var(--radar-glow), inset 0 0 30px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .radar__self-label {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(40, 70, 120, 0.15);
+}
+
+[data-theme="light"] .peer-node__glyph {
+  border-color: var(--peer-color, #7c5cf0);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15), 0 0 12px var(--peer-color, rgba(124, 92, 240, 0.3));
+}
+
+[data-theme="light"] .peer-node__label {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(40, 70, 120, 0.12);
+}
+
+[data-theme="light"] .peer-node__star {
+  background: #fff;
+  border: 1px solid rgba(40, 70, 120, 0.2);
+  color: rgba(11, 22, 38, 0.5);
+}
+
+[data-theme="light"] .radar-status-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(40, 70, 120, 0.14);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+}
+
+[data-theme="light"] .radar-status-panel__title {
+  color: rgba(11, 22, 38, 0.5);
+}
+
+[data-theme="light"] .live-transfer-card,
+[data-theme="light"] .recent-transfer-row {
+  background: rgba(11, 22, 38, 0.04);
+  border: 1px solid rgba(40, 70, 120, 0.1);
+}
+
+[data-theme="light"] .recent-transfer-row__name {
+  color: var(--text);
+}
+
+[data-theme="light"] .recent-transfer-row__peer {
+  color: rgba(11, 22, 38, 0.5);
+}
+
+[data-theme="light"] .recent-transfer-row__close {
+  color: rgba(11, 22, 38, 0.4);
+}
+[data-theme="light"] .recent-transfer-row__close:hover {
+  color: var(--danger);
+  background: var(--danger-dim);
+}
+
+[data-theme="light"] .radar__empty {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(40, 70, 120, 0.15);
+}
+[data-theme="light"] .radar__empty p {
+  color: rgba(11, 22, 38, 0.7);
+}
+
+

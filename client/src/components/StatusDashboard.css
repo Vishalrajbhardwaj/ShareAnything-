@@ -112,7 +112,7 @@
     width: 100%;
   }
 
-  .status-card__sub,
+.status-card__sub,
   .status-card__bar {
     display: none; /* keep the compact mobile row to just label + count */
   }
@@ -120,4 +120,23 @@
   .status-card__count {
     font-size: 18px;
   }
+}
+
+/* ===== LIGHT THEME OVERRIDES ===== */
+[data-theme="light"] .status-card {
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(40, 70, 120, 0.12);
+}
+[data-theme="light"] .status-card:hover {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(14, 123, 214, 0.25);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] .status-card__count {
+  background: linear-gradient(135deg, #0b1626 30%, #5a6b86);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+[data-theme="light"] .status-card__bar {
+  background: rgba(40, 70, 120, 0.12);
 }

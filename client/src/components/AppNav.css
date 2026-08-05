@@ -280,3 +280,113 @@
   background: #7bd7ff;
   box-shadow: 0 0 10px #7bd7ff;
 }
+
+/* ===== COLLAPSED SIDEBAR ===== */
+.app-nav--collapsed {
+  width: 72px;
+  min-width: 72px;
+  padding: 24px 10px;
+  align-items: center;
+}
+
+.app-nav--collapsed .app-nav__brand {
+  padding: 4px 0 24px;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 12px;
+}
+.app-nav--collapsed .app-nav__brand:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.app-nav--collapsed .app-nav__brand-name,
+.app-nav--collapsed .app-nav__item-label,
+.app-nav--collapsed .app-nav__active-pill,
+.app-nav--collapsed .app-nav__activity,
+.app-nav--collapsed .app-nav__connection-text {
+  display: none;
+}
+
+.app-nav--collapsed .app-nav__item {
+  justify-content: center;
+  padding: 12px 0;
+  gap: 0;
+}
+
+.app-nav--collapsed .app-nav__item-icon {
+  font-size: 20px;
+}
+
+.app-nav--collapsed .app-nav__connection {
+  justify-content: center;
+  padding: 0;
+}
+
+/* ===== LIGHT THEME OVERRIDES ===== */
+[data-theme="light"] .app-nav--sidebar {
+  background: rgba(255, 255, 255, 0.85);
+  border-right: 1px solid rgba(40, 70, 120, 0.12);
+}
+
+[data-theme="light"] .app-nav__brand-name {
+  color: #0b1626;
+}
+
+[data-theme="light"] .app-nav__brand-mark {
+  background: linear-gradient(135deg, rgba(14, 123, 214, 0.2), rgba(124, 92, 240, 0.16));
+  border-color: rgba(14, 123, 214, 0.3);
+  color: #0b1626;
+  box-shadow: 0 0 20px rgba(14, 123, 214, 0.15);
+}
+
+[data-theme="light"] .app-nav__item {
+  color: #3a4a63;
+}
+[data-theme="light"] .app-nav__item:hover {
+  background: rgba(14, 123, 214, 0.08);
+  color: #0b1626;
+}
+[data-theme="light"] .app-nav__item--active {
+  background: linear-gradient(90deg, rgba(14, 123, 214, 0.14), rgba(124, 92, 240, 0.08));
+  color: #0b1626;
+  border-color: rgba(14, 123, 214, 0.25);
+  box-shadow: 0 4px 16px rgba(14, 123, 214, 0.12);
+}
+
+[data-theme="light"] .app-nav__activity {
+  background: rgba(14, 123, 214, 0.05);
+  border: 1px solid rgba(40, 70, 120, 0.12);
+}
+[data-theme="light"] .app-nav__activity-label {
+  color: #5a6b86;
+}
+[data-theme="light"] .app-nav__activity-count {
+  color: #0b1626;
+}
+[data-theme="light"] .app-nav__activity-count.highlight {
+  color: #0e7bd6;
+}
+[data-theme="light"] .app-nav__activity-name {
+  color: #5a6b86;
+}
+[data-theme="light"] .app-nav__stat-divider {
+  background: rgba(40, 70, 120, 0.15);
+}
+[data-theme="light"] .app-nav__connection {
+  color: #5a6b86;
+}
+
+[data-theme="light"] .app-nav--collapsed .app-nav__brand:hover {
+  background: rgba(14, 123, 214, 0.08);
+}
+
+[data-theme="light"] .app-nav--bottom {
+  background: rgba(255, 255, 255, 0.9);
+  border-top: 1px solid rgba(40, 70, 120, 0.12);
+}
+[data-theme="light"] .app-nav__tab {
+  color: #5a6b86;
+}
+[data-theme="light"] .app-nav__tab--active {
+  color: #0e7bd6;
+}

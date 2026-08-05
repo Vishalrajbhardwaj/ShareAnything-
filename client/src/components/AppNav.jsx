@@ -1,17 +1,27 @@
+import { useState } from "react";
 import "./AppNav.css";
 
 const ITEMS = [
   { id: "receive", icon: "📡", label: "Receive" },
   { id: "send", icon: "📤", label: "Send" },
-  { id: "invite", icon: "✉️", label: "Invite" },
+  { id: "invite", icon: "🔗", label: "Invite" },
 ];
 
 export default function AppNav({ view, onChangeView, stats = { sent: 0, received: 0, active: 0 }, connectionLabel }) {
+  const [collapsed, setCollapsed] = useState(true);
+
   return (
     <>
       {/* Desktop Navigation Sidebar */}
-      <nav className="app-nav app-nav--sidebar" aria-label="Main Navigation">
-        <div className="app-nav__brand">
+      <nav
+        className={`app-nav app-nav--sidebar ${collapsed ? "app-nav--collapsed" : ""}`}
+        aria-label="Main Navigation"
+      >
+        <div
+          className="app-nav__brand app-nav__brand--toggle"
+          onClick={() => setCollapsed((c) => !c)}
+          title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
           <div className="app-nav__brand-mark">
             <span>⇄</span>
           </div>
@@ -28,6 +38,7 @@ export default function AppNav({ view, onChangeView, stats = { sent: 0, received
                   className={`app-nav__item ${isActive ? "app-nav__item--active" : ""}`}
                   onClick={() => onChangeView(item.id)}
                   aria-current={isActive ? "page" : undefined}
+                  title={collapsed ? item.label : undefined}
                 >
                   <span className="app-nav__item-icon">{item.icon}</span>
                   <span className="app-nav__item-label">{item.label}</span>

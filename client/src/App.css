@@ -149,8 +149,8 @@
 /* Shared card surface used by every "view" (Radar/Transfers/Invite/Settings) */
 .page-card {
   position: relative;
-  background: linear-gradient(180deg, rgba(18, 28, 45, 0.9), rgba(12, 18, 30, 0.9));
-  border: 1px solid rgba(123, 215, 255, 0.14);
+  background: linear-gradient(180deg, var(--surface), var(--surface-2));
+  border: 1px solid var(--border);
   border-radius: 24px;
   padding: 22px;
   box-shadow: 0 28px 80px -38px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.02);
