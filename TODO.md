@@ -1,4 +1,3 @@
-# Feature Additions — Task Steps
 
 ## Completed
 - [x] Analyzed codebase (App.jsx, SendView, TransferList, usePeerConnections, useSocket, server, CSS)
@@ -15,4 +14,5 @@
 - [x] Settings toggles integration
 - [x] Send page redesign (full page, not modal)
 - [x] Build client + verify
-- [ ] Commit & push to GitHub
+- [x] Unread chat badge + real-time chat update
+- [x] Commit & push to GitHub

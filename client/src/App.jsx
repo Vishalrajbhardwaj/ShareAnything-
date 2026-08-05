@@ -44,6 +44,9 @@ const [showSplash, setShowSplash] = useState(true);
   const [completeQueue, setCompleteQueue] = useState([]);
 const [toastMsg, setToastMsg] = useState("");
   const [shareDownloadOpen, setShareDownloadOpen] = useState(false);
+  const [chatVersion, setChatVersion] = useState(0); // bumps when a chat message arrives → ChatView re-reads in real-time
+  const [unreadChat, setUnreadChat] = useState(0); // total unread chat messages → badge on the Chat nav icon
+  const activeChatPeerRef = useRef(null); // which peer the Chat view is currently showing
   const loggedTransferIds = useRef(new Set());
   const notifiedTransferIds = useRef(new Set());
   const queuedFilesRef = useRef([]);
@@ -183,11 +186,18 @@ window.addEventListener("paste", onPaste);
     return () => window.removeEventListener("paste", onPaste);
   }, [selectedPeer, sendFilesToPeer]);
 
-  // Incoming chat messages — persist them and show a toast + sound.
+// Incoming chat messages — persist them, bump the version so ChatView
+  // re-reads in real-time, and track the unread badge count.
   useEffect(() => {
     setOnChatMessage((msg) => {
       if (!msg || !msg.fromName || !msg.text) return;
       addChatMessage(msg.fromName, { text: msg.text, from: "them" });
+      // Bump the version so the open ChatView re-reads its messages immediately.
+      setChatVersion((v) => v + 1);
+      // Only count as unread if we're not already viewing that peer's chat.
+      if (view !== "chat" || activeChatPeerRef.current !== msg.fromName) {
+        setUnreadChat((n) => n + 1);
+      }
       const prefs = getPrefs();
       if (prefs.sound) playRequestSound();
       if (prefs.notifications) {
@@ -197,7 +207,7 @@ window.addEventListener("paste", onPaste);
     });
     setOnChatTyping(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setOnChatMessage, setOnChatTyping]);
+  }, [setOnChatMessage, setOnChatTyping, view]);
 
   // Global drag & drop — drop files anywhere to send to the selected device.
   const dragDepth = useRef(0);
@@ -250,11 +260,15 @@ window.addEventListener("paste", onPaste);
 
   return (
     <div className="app-shell">
-      <AppNav
+<AppNav
         view={view}
-        onChangeView={(next) => setView(next)}
+        onChangeView={(next) => {
+          setView(next);
+          if (next === "chat") setUnreadChat(0);
+        }}
         stats={activityStats}
         connectionLabel={connected ? "Connected" : "Connecting…"}
+        unreadChat={unreadChat}
       />
 
       <div className="app-workbench">
@@ -356,6 +370,8 @@ window.addEventListener("paste", onPaste);
                 onSendChatMessage={sendChatMessage}
                 onSendChatTyping={sendChatTyping}
                 onNotify={setToastMsg}
+                chatVersion={chatVersion}
+                onActivePeerChange={(name) => (activeChatPeerRef.current = name)}
               />
             )}
 

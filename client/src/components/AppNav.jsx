@@ -8,7 +8,7 @@ const ITEMS = [
   { id: "invite", icon: "🔗", label: "Invite" },
 ];
 
-export default function AppNav({ view, onChangeView, stats = { sent: 0, received: 0, active: 0 }, connectionLabel }) {
+export default function AppNav({ view, onChangeView, stats = { sent: 0, received: 0, active: 0 }, connectionLabel, unreadChat = 0 }) {
   const [collapsed, setCollapsed] = useState(true);
 
   return (
@@ -41,8 +41,12 @@ export default function AppNav({ view, onChangeView, stats = { sent: 0, received
                   aria-current={isActive ? "page" : undefined}
                   title={collapsed ? item.label : undefined}
                 >
-                  <span className="app-nav__item-icon">{item.icon}</span>
+<span className="app-nav__item-icon">
+                    {item.icon}
+                    {item.id === "chat" && unreadChat > 0 && <span className="nav-badge">{unreadChat > 99 ? "99+" : unreadChat}</span>}
+                  </span>
                   <span className="app-nav__item-label">{item.label}</span>
+                  {item.id === "chat" && unreadChat > 0 && <span className="nav-badge nav-badge--inline">{unreadChat > 99 ? "99+" : unreadChat}</span>}
                   {isActive && <span className="app-nav__active-pill" />}
                 </button>
               </li>
@@ -96,8 +100,11 @@ export default function AppNav({ view, onChangeView, stats = { sent: 0, received
               aria-label={item.label}
               aria-current={isActive ? "page" : undefined}
             >
-              <div className="app-nav__tab-content">
-                <span className="app-nav__tab-icon">{item.icon}</span>
+<div className="app-nav__tab-content">
+                <span className="app-nav__tab-icon">
+                  {item.icon}
+                  {item.id === "chat" && unreadChat > 0 && <span className="nav-badge nav-badge--tab">{unreadChat > 99 ? "99+" : unreadChat}</span>}
+                </span>
                 <span className="app-nav__tab-label">{item.label}</span>
               </div>
               {isActive && <span className="app-nav__tab-indicator" />}

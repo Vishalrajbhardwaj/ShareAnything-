@@ -6,7 +6,7 @@ function formatTime(ts) {
   return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-export default function ChatView({ peers, self, onSendChatMessage, onSendChatTyping, onNotify }) {
+export default function ChatView({ peers, self, onSendChatMessage, onSendChatTyping, onNotify, chatVersion = 0, onActivePeerChange }) {
   const [selectedPeerId, setSelectedPeerId] = useState(null);
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState([]);
@@ -20,7 +20,16 @@ export default function ChatView({ peers, self, onSendChatMessage, onSendChatTyp
   // Load persisted messages when switching peer.
   useEffect(() => {
     setMessages(peerName ? getChat(peerName) : []);
-  }, [peerName]);
+    // Let the parent know which peer's chat is open so unread counting works.
+    onActivePeerChange?.(peerName);
+  }, [peerName, onActivePeerChange]);
+
+  // Re-read messages in real-time whenever a new incoming message arrives
+  // (the parent bumps `chatVersion`), so we don't need a page refresh.
+  useEffect(() => {
+    if (!peerName || chatVersion === 0) return;
+    setMessages(getChat(peerName));
+  }, [chatVersion, peerName]);
 
   // Auto-scroll to bottom on new messages.
   useEffect(() => {

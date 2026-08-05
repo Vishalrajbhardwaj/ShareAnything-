@@ -390,3 +390,40 @@
 [data-theme="light"] .app-nav__tab--active {
   color: #0e7bd6;
 }
+
+/* ===== UNREAD CHAT BADGE ===== */
+.nav-badge {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 10px;
+  background: #ff5d5d;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  box-shadow: 0 0 8px rgba(255, 93, 93, 0.5);
+}
+
+.app-nav__item-icon {
+  position: relative;
+}
+
+.nav-badge--inline {
+  position: static;
+  margin-left: auto;
+}
+
+.nav-badge--tab {
+  top: -8px;
+  right: -12px;
+}
+
+[data-theme="light"] .nav-badge {
+  background: #ff4d4d;
+  box-shadow: 0 0 8px rgba(255, 77, 77, 0.45);
+}
