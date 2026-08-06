@@ -1,28 +1,35 @@
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 
-const PROFILE_KEY = "saa-profile"; // { name, avatar } saved locally so it survives reloads (no login involved)
-
-function getNetCodeFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("net") || "";
-}
+// The profile (name + avatar) is persisted to localStorage so the identity the
+// user picks survives page refreshes, instead of the server issuing a brand-new
+// random identity every time the app reloads.
+const PROFILE_KEY = "saa-profile";
 
 function loadSavedProfile() {
   try {
     const raw = localStorage.getItem(PROFILE_KEY);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") return parsed;
   } catch {
-    return null;
+    // ignore corrupt/missing storage
+  }
+  return null;
+}
+
+function saveSavedProfile(patch) {
+  try {
+    const current = loadSavedProfile() || {};
+    localStorage.setItem(PROFILE_KEY, JSON.stringify({ ...current, ...patch }));
+  } catch {
+    // ignore
   }
 }
 
-function saveProfile(profile) {
-  try {
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
-  } catch {
-    // ignore storage errors (e.g. private browsing)
-  }
+function getNetCodeFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("net") || "";
 }
 
 export function useSocket() {
@@ -48,22 +55,32 @@ const [netCode, setNetCode] = useState(getNetCodeFromUrl());
     socket.on("connect", () => setConnected(true));
     socket.on("disconnect", () => setConnected(false));
 
-    socket.on("joined", ({ self: serverSelf, roomId, peers, pendingShare: share }) => {
+socket.on("joined", ({ self: serverSelf, roomId, peers, pendingShare: share }) => {
       setRoomId(roomId);
       setPeers(peers);
-      if (share) {
+if (share) {
         setPendingShare(share);
       } else {
         setPendingShare(null);
       }
 
+      // Restore the persisted profile (name + avatar) if the user picked one,
+      // so their identity survives page refreshes. Otherwise fall back to the
+      // server-issued random identity.
       const saved = loadSavedProfile();
+      const restored = saved && (saved.name || saved.avatar)
+        ? { ...serverSelf, ...(saved.name ? { name: saved.name } : {}), ...(saved.avatar ? { avatar: saved.avatar } : {}) }
+        : serverSelf;
+
+      setSelf(restored);
+
+      // Tell the server/other peers about the restored identity so everyone
+      // sees the same profile this session.
       if (saved && (saved.name || saved.avatar)) {
-        const merged = { ...serverSelf, ...saved };
-        setSelf(merged);
-        socket.emit("update-profile", { name: merged.name, avatar: merged.avatar });
-      } else {
-        setSelf(serverSelf);
+        socket.emit("update-profile", {
+          ...(saved.name ? { name: saved.name } : {}),
+          ...(saved.avatar ? { avatar: saved.avatar } : {}),
+        });
       }
     });
 
@@ -103,11 +120,12 @@ socket.on("peer-left", ({ id }) => {
     return () => socket.disconnect();
   }, [netCode]);
 
-  function updateProfile(patch) {
+function updateProfile(patch) {
+    // Persist the chosen identity so it survives page refreshes.
+    if (patch && (patch.name || patch.avatar)) saveSavedProfile(patch);
     socketRef.current?.emit("update-profile", patch);
     setSelf((s) => {
       const next = s ? { ...s, ...patch } : s;
-      if (next) saveProfile({ name: next.name, avatar: next.avatar });
       return next;
     });
   }

@@ -1,3 +1,4 @@
+import Avatar from "./Avatar.jsx";
 import "./Header.css";
 
 export default function Header({ self, connected, netCode, onOpenSettings, onSetNetworkMode, onOpenHistory }) {
@@ -47,7 +48,7 @@ export default function Header({ self, connected, netCode, onOpenSettings, onSet
         <button className="app-header__settings-btn" onClick={onOpenSettings}>
           {self ? (
             <>
-              <span className="app-header__avatar">{self.avatar}</span>
+<span className="app-header__avatar"><Avatar value={self.avatar} alt={self.name} /></span>
               <span>{self.name}</span>
             </>
           ) : (

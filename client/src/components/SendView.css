@@ -188,6 +188,9 @@
 
 .send-device__avatar {
   font-size: 16px;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
 }
 
 .send-device__name {

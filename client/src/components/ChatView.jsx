@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { getChat, addChatMessage, clearChat } from "../lib/chat.js";
+import Avatar from "./Avatar.jsx";
 import "./ChatView.css";
 
 function formatTime(ts) {
@@ -73,7 +74,7 @@ export default function ChatView({ peers, self, onSendChatMessage, onSendChatTyp
                   className={`chat-peer ${selectedPeerId === peer.id ? "chat-peer--active" : ""}`}
                   onClick={() => setSelectedPeerId(peer.id)}
                 >
-                  <span className="chat-peer__avatar">{peer.avatar ?? "◇"}</span>
+<span className="chat-peer__avatar"><Avatar value={peer.avatar} alt={peer.name} /></span>
                   <span className="chat-peer__name">{peer.name}</span>
                 </button>
               ))}
@@ -91,7 +92,7 @@ export default function ChatView({ peers, self, onSendChatMessage, onSendChatTyp
           ) : (
             <>
               <div className="chat-header">
-                <span className="chat-header__avatar">{selectedPeer.avatar ?? "◇"}</span>
+<span className="chat-header__avatar"><Avatar value={selectedPeer.avatar} alt={selectedPeer.name} /></span>
                 <div className="chat-header__mid">
                   <span className="chat-header__name">{selectedPeer.name}</span>
                   <span className="chat-header__status">Online</span>

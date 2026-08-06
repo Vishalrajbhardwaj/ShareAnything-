@@ -2,11 +2,44 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
+import multer from "multer";
 import { randomIdentity } from "./lib/names.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3001;
+
+// ---------------------------------------------------------------------------
+// Cloud file transfer (Multer)
+// ---------------------------------------------------------------------------
+// Files uploaded via the "Upload & Share" flow are stored on the server in an
+// `uploads/` directory so visitors can download them directly by URL. Files are
+// automatically deleted after 30 minutes (see cleanOldUploads below).
+const UPLOAD_DIR = path.join(__dirname, "..", "uploads");
+const FILE_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // every 5 minutes
+
+// Ensure the uploads directory exists (create it if missing).
+if (!fs.existsSync(UPLOAD_DIR)) {
+  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+
+// Multer disk storage: store under a random unique filename (keeping the
+// original extension) so multiple uploads with the same name never collide.
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || "");
+    const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}${ext}`;
+    cb(null, unique);
+  },
+});
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 1024 * 1024 * 1024 }, // 1 GB per file cap
+});
 
 // Optional TURN relay for restrictive networks (corporate NATs, symmetric NATs, etc.)
 // where a direct/STUN-negotiated path can't be found. Set these env vars to enable it;
@@ -150,10 +183,15 @@ socket.emit("joined", { self, roomId, peers: peerList(roomId, socket.id), pendin
   // (e.g. someone who opens the link after the files were queued) still see them.
   socket.on("share-files", ({ files }) => {
     if (!Array.isArray(files) || files.length === 0 || files.length > 50) return;
-    const normalized = files.slice(0, 50).map((f) => ({
+const normalized = files.slice(0, 50).map((f) => ({
       name: String(f.name ?? "file").slice(0, 200),
       size: Number(f.size) || 0,
       type: String(f.type ?? "application/octet-stream"),
+      // Optional server-hosted URL so visitors can download directly from the
+      // server instead of requiring a WebRTC peer connection to the owner.
+      ...(typeof f.url === "string" && f.url ? { url: f.url } : {}),
+      ...(typeof f.downloadUrl === "string" && f.downloadUrl ? { downloadUrl: f.downloadUrl } : {}),
+      ...(typeof f.filename === "string" && f.filename ? { filename: f.filename } : {}),
     }));
     pendingShares.set(roomId, { senderId: socket.id, senderName: self.name, files: normalized });
     socket.to(roomId).emit("share-updated", pendingShares.get(roomId));
@@ -203,6 +241,92 @@ socket.emit("joined", { self, roomId, peers: peerList(roomId, socket.id), pendin
     socket.to(roomId).emit("peer-left", { id: socket.id });
   });
 });
+
+// ---------------------------------------------------------------------------
+// Cloud file endpoints
+// ---------------------------------------------------------------------------
+
+// POST /upload — accept a single file (field name "file") and store it in
+// uploads/. Returns JSON describing the stored file including its download URL.
+app.post("/upload", upload.single("file"), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
+  const stored = req.file;
+  res.json({
+    success: true,
+    name: stored.originalname,
+    size: stored.size,
+    type: stored.mimetype || "application/octet-stream",
+    filename: stored.filename,
+    url: `/download/${encodeURIComponent(stored.filename)}`,
+    downloadUrl: `/download/${encodeURIComponent(stored.filename)}`,
+  });
+});
+
+// Multer error handler (e.g. file too large) -> clean JSON response.
+app.post("/upload", (err, req, res, next) => {
+  if (err) {
+    return res.status(400).json({ error: err.message || "Upload failed" });
+  }
+  next();
+});
+
+// GET /download/:filename — stream the stored file to the visitor with a
+// proper Content-Disposition so browsers save it with the original name.
+app.get("/download/:filename", (req, res) => {
+  const requested = req.params.filename;
+  // Prevent path traversal — only allow plain filenames.
+  if (!requested || requested.includes("..") || path.basename(requested) !== requested) {
+    return res.status(400).json({ error: "Invalid filename" });
+  }
+  const filePath = path.join(UPLOAD_DIR, requested);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ error: "File not found or expired" });
+  }
+  const stat = fs.statSync(filePath);
+  if (!stat.isFile()) {
+    return res.status(404).json({ error: "File not found or expired" });
+  }
+  res.setHeader("Content-Disposition", `attachment; filename="${requested}"`);
+  res.setHeader("Content-Length", stat.size);
+  const stream = fs.createReadStream(filePath);
+  stream.on("error", () => {
+    if (!res.headersSent) res.status(500).json({ error: "Download failed" });
+  });
+  stream.pipe(res);
+});
+
+// ---------------------------------------------------------------------------
+// Automatic file cleanup
+// ---------------------------------------------------------------------------
+// Files uploaded to the server are only meant to live briefly. Every 5 minutes
+// we delete any file in uploads/ that is older than 30 minutes, so the disk
+// never fills up and old share links don't point at stale data forever.
+function cleanOldUploads() {
+  let entries;
+  try {
+    entries = fs.readdirSync(UPLOAD_DIR);
+  } catch {
+    return;
+  }
+  const now = Date.now();
+  for (const entry of entries) {
+    const full = path.join(UPLOAD_DIR, entry);
+    try {
+      const stat = fs.statSync(full);
+      if (stat.isFile() && now - stat.mtimeMs > FILE_TTL_MS) {
+        fs.unlinkSync(full);
+      }
+    } catch {
+      // ignore files that vanish between listing and stat/unlink
+    }
+  }
+}
+
+// Run the cleanup immediately on startup, then every 5 minutes.
+cleanOldUploads();
+setInterval(cleanOldUploads, CLEANUP_INTERVAL_MS);
 
 // In production, serve the built client so the whole app is a single process.
 const clientDist = path.join(__dirname, "..", "client", "dist");

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { formatBytes } from "../lib/fileTransfer.js";
 import { iconForFile } from "../lib/fileIcons.js";
+import Avatar from "./Avatar.jsx";
 import "./TransferRequestModal.css";
 
 const EXPIRY_SECONDS = 45;
@@ -20,15 +21,15 @@ export default function TransferRequestModal({ requests, onRespond }) {
 
   if (!request) return null;
   const totalSize = request.files.reduce((sum, f) => sum + f.size, 0);
-  const initial = request.fromName?.[0]?.toUpperCase() ?? "?";
+
 
   return (
     <div className="modal-backdrop">
       <div className="modal-card modal-card--request" role="dialog" aria-modal="true">
         <p className="modal-card__eyebrow">Incoming Transfer</p>
 
-        <div className="request-peer">
-          <span className="request-peer__avatar">{initial}</span>
+<div className="request-peer">
+          <span className="request-peer__avatar"><Avatar value={request.fromAvatar} alt={request.fromName} /></span>
           <span className="request-peer__name">{request.fromName}</span>
         </div>
 

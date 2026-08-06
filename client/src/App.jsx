@@ -4,7 +4,6 @@ import { usePeerConnections } from "./hooks/usePeerConnections.js";
 import Splash from "./components/Splash.jsx";
 import AppNav from "./components/AppNav.jsx";
 import RadarView from "./components/RadarView.jsx";
-import StatusDashboard from "./components/StatusDashboard.jsx";
 import TransferRequestModal from "./components/TransferRequestModal.jsx";
 import TransferCompleteModal from "./components/TransferCompleteModal.jsx";
 import TransferList from "./components/TransferList.jsx";
@@ -13,6 +12,7 @@ import ProfileModal from "./components/ProfileModal.jsx";
 import InviteView from "./components/InviteView.jsx";
 import HistoryPanel from "./components/HistoryPanel.jsx";
 import ShareDownloadModal from "./components/ShareDownloadModal.jsx";
+import Avatar from "./components/Avatar.jsx";
 import Toast from "./components/Toast.jsx";
 import ChatView from "./components/ChatView.jsx";
 import ImagePreview from "./components/ImagePreview.jsx";
@@ -301,7 +301,9 @@ onChangeView={(next) => {
               }}
               aria-label="Open profile"
             >
-              <span className="app-topbar__avatar">{self?.avatar ?? "👤"}</span>
+<span className="app-topbar__avatar">
+                <Avatar value={self?.avatar} alt={self?.name} />
+              </span>
               <span className="app-topbar__name">{self?.name ?? "Profile"}</span>
             </button>
 
@@ -322,7 +324,7 @@ onChangeView={(next) => {
 
         <div className="app-body">
           <main className="app-main">
-            {(view === "receive" || view === "radar") && (
+{(view === "receive" || view === "radar") && (
               <RadarView
                 self={self}
                 peers={peers}

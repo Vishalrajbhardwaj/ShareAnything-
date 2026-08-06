@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { iconForFile } from "../lib/fileIcons.js";
 import { formatBytes, formatSpeed, formatEta } from "../lib/fileTransfer.js";
+import Avatar from "./Avatar.jsx";
 import "./SendView.css";
 
 function createTextFile(fileName, text) {
@@ -197,7 +198,7 @@ export default function SendView({
                   className={`send-device ${selectedPeerId === peer.id ? "send-device--selected" : ""}`}
                   onClick={() => setSelectedPeerId(peer.id)}
                 >
-                  <span className="send-device__avatar">{peer.avatar ?? "◇"}</span>
+<span className="send-device__avatar"><Avatar value={peer.avatar} alt={peer.name} /></span>
                   <span className="send-device__name">{peer.name}</span>
                   <span className="send-device__check">✓</span>
                 </button>

@@ -125,6 +125,49 @@
   gap: 8px;
 }
 
+/* Per-file download progress bar */
+.sd-file__progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.sd-file__progress-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+.sd-file__progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent-gradient);
+  transition: width 0.15s ease;
+}
+.sd-file__progress-fill--done {
+  background: linear-gradient(135deg, #2fbf71 0%, #38d98a 100%);
+}
+.sd-file__progress-ct {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  min-width: 34px;
+  text-align: right;
+}
+
+/* Download error */
+.sd-modal__error {
+  margin: 0 0 14px;
+  font-size: 12.5px;
+  color: var(--danger);
+  background: var(--danger-dim);
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  padding: 9px 12px;
+}
+
 .sd-modal__download:disabled {
   opacity: 0.6;
   cursor: not-allowed;

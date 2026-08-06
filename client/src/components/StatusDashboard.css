@@ -1,11 +1,12 @@
 /* === STATUS DASHBOARD — ALWAYS VISIBLE ON FRONT PAGE === */
 .status-dashboard {
-  display: flex;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
   width: 100%;
-  max-width: 520px;
-  margin: 4px auto 20px;
-  padding: 0 8px;
+  max-width: 900px;
+  margin: 8px auto 24px;
+  padding: 0 12px;
 }
 
 .status-card {
@@ -14,11 +15,11 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 12px 14px;
+  border-radius: 18px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   transition: all 0.25s ease;
 }
 
@@ -36,39 +37,43 @@
 }
 
 .status-card__label {
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .status-card__icon {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .status-card__count {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 30px;
+  font-weight: 800;
   font-family: var(--font-display);
   background: linear-gradient(135deg, #f1efe9 30%, #8b90b3);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
   line-height: 1;
 }
 
 .status-card__sub {
-  font-size: 11px;
+  font-size: 12.5px;
   color: var(--text-muted);
 }
 
 .status-card--active .status-card__count {
   background: var(--accent-gradient);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 /* Small progress bar for each card */
@@ -99,26 +104,29 @@
 /* Responsive: stack on small phones */
 @media (max-width: 480px) {
   .status-dashboard {
-    flex-direction: column;
-    gap: 8px;
-    padding: 0 4px;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 0 8px;
   }
 
   .status-card {
-    padding: 10px 14px;
+    padding: 14px 16px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
   }
 
   .status-card__header {
-    width: 100%;
+    width: auto;
   }
 
-.status-card__sub,
+  .status-card__sub,
   .status-card__bar {
     display: none; /* keep the compact mobile row to just label + count */
   }
 
   .status-card__count {
-    font-size: 18px;
+    font-size: 24px;
   }
 }
 
@@ -134,8 +142,10 @@
 }
 [data-theme="light"] .status-card__count {
   background: linear-gradient(135deg, #0b1626 30%, #5a6b86);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 [data-theme="light"] .status-card__bar {
   background: rgba(40, 70, 120, 0.12);

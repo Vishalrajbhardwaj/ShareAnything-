@@ -143,3 +143,165 @@ button {
     linear-gradient(180deg, #eef4ff 0%, #e2eaf8 100%);
   color: var(--text);
 }
+
+/* ===== Shared Avatar component ===== */
+.avatar-img,
+.avatar-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50%;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.avatar-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatar-glyph {
+  background: var(--accent-signal-dim);
+  color: var(--text);
+  font-weight: 700;
+  user-select: none;
+}
+
+/* ===== Character-Themed Avatar Rings & Animations =====
+   Applied automatically by the Avatar component based on the character name.
+   A color ring + subtle animation makes every avatar distinct everywhere. */
+.char-avatar::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--tc1, #a78bfa) 75%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tc1, #a78bfa) 55%, transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Iron Man / tech — pulsing arc-reactor ring */
+.char-avatar--tech::after { border-color: var(--tc1); animation: ctech 1.6s ease-in-out infinite; }
+@keyframes ctech { 0%,100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.2); opacity: 0.4; } }
+
+/* Captain America / patriotic — red-white-blue sparkle */
+.char-avatar--patriotic::after { border-color: var(--tc2); animation: cspark 1.8s ease-in-out infinite; }
+@keyframes cspark { 0%,100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.25); box-shadow: 0 0 16px var(--tc2); } }
+
+/* Thor / storm — electric flash */
+.char-avatar--storm { animation: cthunder 1.2s ease-in-out infinite; }
+@keyframes cthunder { 0%,100% { filter: brightness(1); } 30% { filter: brightness(1.7); } 60% { filter: brightness(1); } 80% { filter: brightness(1.5); } }
+
+/* Hulk / strong — shake */
+.char-avatar--strong { animation: chulk 0.5s ease-in-out infinite; }
+@keyframes chulk { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(2px,-2px) scale(1.06); } 50% { transform: translate(-2px,2px) scale(1.03); } 75% { transform: translate(2px,2px) scale(1.06); } }
+
+/* Doctor Strange / magic — rotating magic circle */
+.char-avatar--magic::after { border: 2px dashed var(--tc2); animation: cmagic 3s linear infinite; }
+@keyframes cmagic { to { transform: rotate(360deg); } }
+
+/* Black Widow / spy — subtle pulse */
+.char-avatar--spy::after { border-color: var(--tc1); animation: cspy 2s ease-in-out infinite; }
+@keyframes cspy { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+
+/* Hawkeye / archer — targeting pulse */
+.char-avatar--archer::after { border-color: var(--tc1); animation: carch 1.4s ease-in-out infinite; }
+@keyframes carch { 0%,100% { transform: scale(1); opacity: 0.6; } 50% { transform: scale(1.3); opacity: 0.2; } }
+
+/* Ant-Man / tiny — shrink & grow */
+.char-avatar--tiny { animation: ctiny 2s ease-in-out infinite; }
+@keyframes ctiny { 0%,100% { transform: scale(1); } 50% { transform: scale(0.7); } }
+
+/* Captain Marvel / cosmic — star glow */
+.char-avatar--cosmic::after { border-color: var(--tc2); animation: ccosmic 1.4s ease-in-out infinite; }
+@keyframes ccosmic { 0%,100% { opacity: 0.5; box-shadow: 0 0 8px var(--tc1); } 50% { opacity: 1; box-shadow: 0 0 18px var(--tc2); } }
+
+/* Loki / trickster — green flicker */
+.char-avatar--trickster::after { border-color: var(--tc1); animation: ctrick 1s ease-in-out infinite; }
+@keyframes ctrick { 0%,100% { opacity: 0.6; } 50% { opacity: 0.2; } }
+
+/* Deadpool / mercy — red pulse */
+.char-avatar--mercy::after { border-color: var(--tc1); animation: ctech 1.5s ease-in-out infinite; }
+
+/* Groot / tree — spin */
+.char-avatar--tree::after { border: 2px dashed var(--tc1); animation: cmagic 6s linear infinite; }
+
+/* Batman / knight — glow */
+.char-avatar--knight::after { border-color: var(--tc2); animation: cspark 2.2s ease-in-out infinite; }
+
+/* Flash / speed — fast spin ring */
+.char-avatar--speed::after { border: 3px solid var(--tc2); border-top-color: transparent; animation: cspeed 0.7s linear infinite; }
+@keyframes cspeed { to { transform: rotate(360deg); } }
+
+/* Aquaman / ocean — wave */
+.char-avatar--ocean { animation: coccan 2.4s ease-in-out infinite; }
+@keyframes coccan { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(3deg); } }
+
+/* Superman / hero — rising glow */
+.char-avatar--hero::after { animation: chero 1.8s ease-in-out infinite; }
+@keyframes chero { 0%,100% { opacity: 0.6; box-shadow: 0 0 8px var(--tc1); } 50% { opacity: 1; box-shadow: 0 0 18px var(--tc2); } }
+
+/* Wolverine / claw — slash */
+.char-avatar--claw { animation: cclaw 1.1s ease-in-out infinite; }
+@keyframes cclaw { 0%,100% { transform: rotate(0) scale(1); } 50% { transform: rotate(-8deg) scale(1.08); } }
+
+/* Joker / chaos — spin flicker */
+.char-avatar--chaos::after { border: 2px dashed var(--tc1); animation: cmagic 2s linear infinite; }
+
+/* Harry Potter / wizard — wand twinkle */
+.char-avatar--wizard { animation: cwizard 2s ease-in-out infinite; }
+.char-avatar--wizard::after { border-color: var(--tc1); animation: ctwinkle 1.2s ease-in-out infinite; }
+@keyframes cwizard { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes ctwinkle { 0%,100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 1; transform: scale(1.3); } }
+
+/* Dumbledore / elder — stars */
+.char-avatar--elder::after { border: 2px dashed var(--tc2); animation: cmagic 4s linear infinite; }
+
+/* Snape / potion — bubble pulse */
+.char-avatar--potion { animation: cpotion 1.4s ease-in-out infinite; }
+@keyframes cpotion { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+/* Draco / slytherin — green */
+.char-avatar--slytherin::after { border-color: var(--tc2); animation: cspy 2s ease-in-out infinite; }
+
+/* Hagrid / keeper — leaves */
+.char-avatar--keeper::after { border: 2px dashed var(--tc1); animation: cmagic 5s linear infinite; }
+
+/* Dobby / elf — sparkle */
+.char-avatar--elf::after { border-color: var(--tc2); animation: cspark 1.6s ease-in-out infinite; }
+
+/* Money Heist — red mask pulse */
+.char-avatar--heist::after { border-color: var(--tc1); animation: cheist 1.8s ease-in-out infinite; }
+@keyframes cheist { 0%,100% { opacity: 0.5; box-shadow: 0 0 8px var(--tc1); } 50% { opacity: 1; box-shadow: 0 0 18px var(--tc1); } }
+
+/* Naruto / ninja — chakra spin */
+.char-avatar--ninja::after { border: 3px dashed var(--tc1); animation: cspeed 2.4s linear infinite; }
+
+/* Luffy / pirate — rubber bounce */
+.char-avatar--pirate { animation: cpirate 1.6s ease-in-out infinite; }
+@keyframes cpirate { 0%,100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.12) translateY(-3px); } }
+
+/* Sanji / cook — flame flicker */
+.char-avatar--cook { animation: ccook 1.2s ease-in-out infinite; }
+@keyframes ccook { 0%,100% { transform: translateY(0) scale(1); filter: brightness(1); } 50% { transform: translateY(-2px) scale(1.06); filter: brightness(1.3); } }
+
+/* Levi / scout — dash */
+.char-avatar--scout { animation: cscout 1.3s ease-in-out infinite; }
+@keyframes cscout { 0%,100% { transform: translateX(0); } 50% { transform: translateX(3px); } }
+
+/* Eren / titan — smash */
+.char-avatar--titan { animation: ctitan 0.9s ease-in-out infinite; }
+@keyframes ctitan { 0%,100% { transform: scale(1); } 40% { transform: scale(1.15) rotate(5deg); } 60% { transform: scale(0.9) rotate(-5deg); } }
+
+/* Goku / saiyan — aura glow */
+.char-avatar--saiyan::after { box-shadow: 0 0 14px var(--tc1), 0 0 24px var(--tc2); animation: csaiyan 1.6s ease-in-out infinite; }
+@keyframes csaiyan { 0%,100% { opacity: 0.6; transform: scale(1.1); } 50% { opacity: 1; transform: scale(1.35); } }
+
+/* Default — gentle glow */
+.char-avatar--default::after { animation: chero 2.4s ease-in-out infinite; }

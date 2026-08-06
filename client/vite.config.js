@@ -42,7 +42,13 @@ export default defineConfig({
           proxy.on("error", () => {});
         },
       },
-      "/ice-servers": {
+"/ice-servers": {
+        target: "http://localhost:3001",
+      },
+      "/upload": {
+        target: "http://localhost:3001",
+      },
+      "/download": {
         target: "http://localhost:3001",
       },
     },

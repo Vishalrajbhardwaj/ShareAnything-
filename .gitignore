@@ -4,6 +4,10 @@ server/node_modules/
 client/dist/
 server/.env
 .env
+uploads/
 npm-debug.log*
 .DS_Store
 Thumbs.db
+
+# Source images not used at runtime
+server/lib/Imges/

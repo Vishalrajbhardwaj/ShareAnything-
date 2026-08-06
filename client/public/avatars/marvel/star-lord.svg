@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <!-- clean white square background -->
+  <rect width="256" height="256" fill="#ffffff"/>
+  <!-- soft ground shadow -->
+  <ellipse cx="128" cy="238" rx="70" ry="10" fill="rgba(0,0,0,0.08)"/>
+  
+    <ellipse cx="128" cy="108" rx="62" ry="58" fill="#e8b98a"/>
+    <!-- hair cap over the top of the head -->
+    <path d="M 66 102 Q 66 44 128 44 Q 190 44 190 102 Q 190 78 66 78 Z" fill="#3a2a1a"/>
+    <path d="M 66 96 Q 66 40 128 40 Q 190 40 190 96 Q 190 70 94 74 Q 72 70 66 96 Z" fill="#3a2a1a"/>
+  
+  
+    <!-- eyes -->
+    <ellipse cx="106" cy="104" rx="7" ry="9" fill="#fff"/>
+    <ellipse cx="150" cy="104" rx="7" ry="9" fill="#fff"/>
+    <circle cx="108" cy="106" r="3.5" fill="#1a1a2e"/>
+    <circle cx="152" cy="106" r="3.5" fill="#1a1a2e"/>
+    <!-- eyebrows -->
+    <path d="M 97 92 L 114 90" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+    <path d="M 142 90 L 159 92" stroke="#1a1a2e" stroke-width="3" stroke-linecap="round"/>
+    <!-- mouth -->
+    <path d="M 118 122 Q 128 130 138 122" stroke="#c0392b" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- blush -->
+    <circle cx="96" cy="116" r="6" fill="rgba(255,120,120,0.35)"/>
+    <circle cx="160" cy="116" r="6" fill="rgba(255,120,120,0.35)"/>
+  
+  
+    <!-- torso -->
+    <path d="M 88 150 L 168 150 L 162 214 L 94 214 Z" fill="#8a3a3a"/>
+    <!-- chest emblem bar -->
+    <rect x="112" y="158" width="32" height="20" rx="6" fill="#ffd700"/>
+    <!-- arms -->
+    <path d="M 88 158 L 66 186 L 76 196 L 94 176 Z" fill="#8a3a3a"/>
+    <path d="M 168 158 L 190 186 L 180 196 L 162 176 Z" fill="#8a3a3a"/>
+    <!-- legs -->
+    <rect x="98" y="214" width="24" height="26" rx="8" fill="#ffd700"/>
+    <rect x="134" y="214" width="24" height="26" rx="8" fill="#ffd700"/>
+  
+  
+      <rect x="96" y="40" width="64" height="18" rx="8" fill="#3a2a1a"/>
+    
+</svg>
