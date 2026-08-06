@@ -2,56 +2,68 @@
 // Strange", "Captain America", "Harry Potter", "Hermione Granger" ...
 // so people can recognize each other on the radar with familiar, fun names.
 
-const AVENGERS_NAMES = [
-  // Primary Members & Allies
+// Import the character->image mapping so each device gets the matching avatar
+// image (a proper character icon) instead of random emoji.
+import { randomAvatar } from "./avatars.js";
+
+const MARVEL_NAMES = [
   "Iron Man",
   "Captain America",
   "Thor",
   "Hulk",
   "Black Widow",
   "Hawkeye",
-  "Spider-Man",
   "Doctor Strange",
-  "Black Panther",
-  "Scarlet Witch",
-  "Vision",
-  "Falcon",
-  "Winter Soldier",
-  "War Machine",
   "Ant-Man",
-  "Wasp",
   "Captain Marvel",
-  "Star-Lord",
+  "Loki",
+  "Deadpool",
+  "Groot",
+  "Batman",
+  "Flash",
+  "Aquaman",
+  "Joker",
+  "Superman",
+  "Wolverine",
 ];
 
 const HARRY_POTTER_NAMES = [
-  // Key Characters
   "Harry Potter",
-  "Ron Weasley",
   "Hermione Granger",
   "Albus Dumbledore",
-  "Lord Voldemort",
   "Severus Snape",
-  "Rubeus Hagrid",
-  "Sirius Black",
-  "Remus Lupin",
   "Draco Malfoy",
-  "Neville Longbottom",
-  "Luna Lovegood",
-  "Ginny Weasley",
-  "Minerva McGonagall",
-  "Bellatrix Lestrange",
+  "Rubeus Hagrid",
   "Dobby",
+  "Sorting Hat",
 ];
 
-// Combined pool — every device gets a random character identity.
-const CHARACTER_NAMES = [...AVENGERS_NAMES, ...HARRY_POTTER_NAMES];
+const MONEY_HEIST_NAMES = [
+  "Professor",
+  "Tokyo",
+  "Berlin",
+  "Denver",
+  "Helsinki",
+];
 
-// Small set of Avengers / Harry Potter themed emoji avatars
-export const AVATARS = ['🤖', '🦸', '🛡️', '🔨', '🕷️', '⚡', '🔮', '🐍', '🪄', '🦉', '🦁', '🦅', '🦡', '🥷', '👾', '💥'];
+const ANIME_NAMES = [
+  "Naruto Uzumaki",
+  "Sasuke Uchiha",
+  "Monkey D. Luffy",
+  "Sanji",
+  "Levi Ackerman",
+  "Eren Yeager",
+  "Goku",
+];
+
+
+// Combined pool — every device gets a random character identity.
+const CHARACTER_NAMES = [...MARVEL_NAMES, ...HARRY_POTTER_NAMES, ...MONEY_HEIST_NAMES, ...ANIME_NAMES];
 
 export function randomIdentity() {
   const name = CHARACTER_NAMES[Math.floor(Math.random() * CHARACTER_NAMES.length)];
-  const avatar = AVATARS[Math.floor(Math.random() * AVATARS.length)];
-  return { name, avatar };
+  return {
+    name,
+    avatar: randomAvatar(name),
+  };
 }

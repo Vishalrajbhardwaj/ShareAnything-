@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { isFavorite, toggleFavorite } from "../lib/favorites.js";
-import { avatarColor } from "../lib/avatars.js";
+import { avatarColor, characterTheme } from "../lib/avatars.js";
 import { formatBytes } from "../lib/fileTransfer.js";
 import { iconForFile } from "../lib/fileIcons.js";
+import Avatar from "./Avatar.jsx";
 import "./RadarView.css";
 
 function CircularProgress({ percent, size = 56 }) {
@@ -100,12 +101,21 @@ function PeerNode({ peer, isBusy, isSelected, onFiles, onSelect }) {
   const y = 50 + radius * Math.sin(rad);
   const delay = hashDelay(peer.id);
 
+  // Per-peer character theme so EACH radar node animates distinctly.
+  const peerTheme = characterTheme(peer.name);
+  const peerThemeClass = `peer-char peer-char--${peerTheme.label}`;
+  const themeVars = {
+    "--peer-color": avatarColor(peer.avatar),
+    "--tc1": peerTheme.c1,
+    "--tc2": peerTheme.c2,
+  };
+
   return (
     <div
-      className={`peer-node-wrapper ${dragOver ? "peer-node--drag" : ""} ${isBusy ? "peer-node--busy" : ""} ${
-        isSelected ? "peer-node--selected" : ""
-      } ${fav ? "peer-node--favorite" : ""}`}
-      style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${delay}s` }}
+      className={`peer-node-wrapper ${peerThemeClass} ${dragOver ? "peer-node--drag" : ""} ${
+        isBusy ? "peer-node--busy" : ""
+      } ${isSelected ? "peer-node--selected" : ""} ${fav ? "peer-node--favorite" : ""}`}
+      style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${delay}s`, ...themeVars }}
       onDragOver={(e) => {
         e.preventDefault();
         setDragOver(true);
@@ -126,8 +136,8 @@ function PeerNode({ peer, isBusy, isSelected, onFiles, onSelect }) {
         }}
         title={`Click or drop files to send to ${peer.name}`}
       >
-        <span className="peer-node__glyph" style={{ "--peer-color": avatarColor(peer.avatar) }}>
-          {peer.avatar}
+<span className="peer-node__glyph" style={{ "--peer-color": avatarColor(peer.avatar) }}>
+          <Avatar value={peer.avatar} alt={peer.name} />
         </span>
         <span className="peer-node__label">{peer.name}</span>
       </button>
@@ -214,9 +224,45 @@ export default function RadarView({ self, peers, transfers = [], busyPeerIds, se
     }
   }, [transfers]);
 
+const theme = characterTheme(self?.name);
+  const themeClass = `theme-${theme.label}`;
+  const themeVars = {
+    "--tc1": theme.c1,
+    "--tc2": theme.c2,
+  };
+
+  const effectFlags = {
+    lightning: theme.lightning,
+    magic: theme.magic,
+    stars: theme.stars,
+    bubbles: theme.bubbles,
+    leaves: theme.leaves,
+    flame: theme.flame,
+    aura: theme.aura,
+    glitch: theme.glitch,
+    shake: theme.shake,
+    mask: theme.mask,
+    waves: theme.waves,
+    spark: theme.spark,
+    speed: theme.speed,
+    slash: theme.slash,
+    chakra: theme.chakra,
+    rubber: theme.rubber,
+    smash: theme.smash,
+    bat: theme.bat,
+    shrink: theme.shrink,
+    glow: theme.glow,
+    mystic: theme.mystic,
+    talking: theme.talking,
+  };
+
   return (
-    <div className="radar-layout">
-      <div className="radar">
+    <div className={`radar-layout ${themeClass}`} style={themeVars}>
+<div className="radar">
+        <div className={`radar-master radar-master--${theme.label}`} aria-hidden="true" />
+        {Object.entries(effectFlags).filter(([, v]) => v).map(([name]) => (
+          <div key={name} className={`char-effect char-effect--${name}`} aria-hidden="true" />
+        ))}
         <div className="radar__rings" aria-hidden="true">
           <span className="radar__ring radar__ring--1" />
           <span className="radar__ring radar__ring--2" />
@@ -234,8 +280,8 @@ export default function RadarView({ self, peers, transfers = [], busyPeerIds, se
 
         <div className="radar__self">
           <span className="radar__self-pulse" aria-hidden="true" />
-          <span className="radar__self-glyph" style={{ "--peer-color": avatarColor(self?.avatar) }}>
-            {self?.avatar ?? "◆"}
+<span className="radar__self-glyph" style={{ "--peer-color": theme.c1 }}>
+            <Avatar value={self?.avatar} alt={self?.name} />
           </span>
           <span className="radar__self-label">{self?.name ?? "You"}</span>
         </div>

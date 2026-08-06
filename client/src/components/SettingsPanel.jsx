@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { AVATARS } from "../lib/avatars.js";
+import { AVATAR_SETS } from "../lib/avatars.js";
+import Avatar from "./Avatar.jsx";
 import "./SettingsPanel.css";
 
 export default function SettingsPanel({ self, netCode, onUpdateProfile, onSetNetworkMode }) {
@@ -14,8 +15,8 @@ export default function SettingsPanel({ self, netCode, onUpdateProfile, onSetNet
     <div className="settings-view">
       <div className="page-card settings-card settings-card--compact">
         <div className="settings-card__head settings-card__head--profile">
-          <button className="profile-picker__avatar" type="button" aria-label="Avatar selection">
-            {self?.avatar ?? "🧑‍💻"}
+<button className="profile-picker__avatar" type="button" aria-label="Avatar selection">
+            <Avatar value={self?.avatar} alt={self?.name} />
           </button>
 
           <input
@@ -46,18 +47,21 @@ export default function SettingsPanel({ self, netCode, onUpdateProfile, onSetNet
           </button>
         </div>
 
-        <div className="settings-card__avatars">
-          {AVATARS.map((glyph) => (
-            <button
-              key={glyph}
-              type="button"
-              className={`avatar-swatch ${self?.avatar === glyph ? "avatar-swatch--active" : ""}`}
-              onClick={() => onUpdateProfile({ avatar: glyph })}
-              aria-label={`Use avatar ${glyph}`}
-            >
-              {glyph}
-            </button>
-          ))}
+<div className="settings-card__avatars">
+          {Object.entries(AVATAR_SETS).flatMap(([glyphName, paths]) =>
+            paths.map((glyphPath, idx) => (
+              <button
+                key={glyphPath}
+                type="button"
+                className={`avatar-swatch ${self?.avatar === glyphPath ? "avatar-swatch--active" : ""}`}
+                onClick={() => onUpdateProfile({ avatar: glyphPath })}
+                aria-label={`Use avatar ${glyphName} ${paths.length > 1 ? (idx + 1) : ""}`}
+                title={paths.length > 1 ? `${glyphName} ${idx + 1}` : glyphName}
+              >
+                <Avatar value={glyphPath} alt={glyphName} />
+              </button>
+            ))
+          )}
         </div>
       </div>
     </div>

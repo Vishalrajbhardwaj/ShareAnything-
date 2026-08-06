@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { iconForFile } from "../lib/fileIcons.js";
 import { formatBytes } from "../lib/fileTransfer.js";
+import { uploadFile } from "../lib/cloudTransfer.js";
 import "./InviteView.css";
 
 function randomCode() {
@@ -28,18 +29,28 @@ const [joinDraft, setJoinDraft] = useState("");
   // step only appears AFTER this is clicked, even if a netCode already exists.
   // Starts false so the Upload button always appears after file selection.
   const [shared, setShared] = useState(false);
+  // Cloud upload state: uploadedFiles holds the server metadata returned from
+  // /upload (includes url/downloadUrl), uploading tracks whether an upload is in
+  // flight, uploadProgress maps a file name -> 0..1 progress, and uploadError
+  // holds a message if an upload fails.
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState({});
+  const [uploadError, setUploadError] = useState("");
+  const [dragActive, setDragActive] = useState(false);
+  const dragDepth = useRef(0);
   const copyTimer = useRef(null);
   const qrRef = useRef(null);
   const fileInputRef = useRef(null);
   const folderInputRef = useRef(null);
 
-// Publish queued files to the server so anyone who opens the link can download them.
-  // Re-publish whenever the room changes (netCode) so files selected while on the
-  // local network are also available on the new Anywhere (code) room when the user
-  // switches modes — otherwise the visitor opening the link won't see the modal.
+// Publish queued files to the server so anyone who opens the link can download
+  // them. If the files have server URLs (after upload), those are published too
+  // so visitors can download directly from the server.
   useEffect(() => {
-    onShareFiles?.(queuedFiles);
-  }, [queuedFiles, onShareFiles, netCode]);
+    const payload = uploadedFiles.length ? uploadedFiles : queuedFiles;
+    onShareFiles?.(payload);
+  }, [queuedFiles, uploadedFiles, onShareFiles, netCode]);
 
   const inviteUrl = (() => {
     const url = new URL(window.location.href);
@@ -60,6 +71,63 @@ const [joinDraft, setJoinDraft] = useState("");
           )
       );
     });
+  };
+
+  // Drag & drop over the file-selection area. Keeps a depth counter so nested
+  // dragenter/dragleave events (children) don't flicker the overlay.
+  const onDragEnter = (e) => {
+    if (!e.dataTransfer?.types?.includes("Files")) return;
+    e.preventDefault();
+    dragDepth.current += 1;
+    setDragActive(true);
+  };
+  const onDragOver = (e) => {
+    if (!e.dataTransfer?.types?.includes("Files")) return;
+    e.preventDefault();
+  };
+  const onDragLeave = (e) => {
+    if (!e.dataTransfer?.types?.includes("Files")) return;
+    e.preventDefault();
+    dragDepth.current = Math.max(0, dragDepth.current - 1);
+    if (dragDepth.current === 0) setDragActive(false);
+  };
+  const onDrop = (e) => {
+    e.preventDefault();
+    dragDepth.current = 0;
+    setDragActive(false);
+    addFiles(e.dataTransfer?.files);
+  };
+
+  // Upload every queued file to the server. Tracks per-file progress and builds
+  // the list of hosted files (with download URLs) that gets published to visitors.
+  const handleUploadShare = async () => {
+    if (uploading || queuedFiles.length === 0) return;
+    onSetNetworkMode(netCode || randomCode());
+    setUploading(true);
+    setUploadError("");
+    const results = [];
+    const progress = {};
+    for (const file of queuedFiles) {
+      try {
+        const res = await uploadFile(file, {
+          onProgress: (p) => {
+            progress[file.name] = p;
+            setUploadProgress({ ...progress });
+          },
+        });
+        results.push(res);
+        progress[file.name] = 1;
+        setUploadProgress({ ...progress });
+      } catch (err) {
+        setUploadError(err?.message || "Upload failed");
+        break;
+      }
+    }
+    setUploadedFiles((prev) => {
+      const merged = [...prev, ...results.filter(Boolean)];
+      return merged;
+    });
+    setUploading(false);
   };
 
   const sendText = () => {
@@ -104,7 +172,7 @@ const copyLink = async () => {
 
 // QR is only the final step — shown only after the user explicitly clicks
   // "Upload & Share", AND files are selected, AND a netCode exists.
-  const showQr = !!shared && !!netCode && queuedFiles.length > 0;
+  const showQr = !!shared && !!netCode && (queuedFiles.length > 0 || uploadedFiles.length > 0);
 
 // The app was opened via someone else's share link (?net=CODE) and the user
   // hasn't selected any files themselves. This is a visitor, not the owner, so
@@ -155,7 +223,13 @@ const copyLink = async () => {
         </p>
 
         {/* Step 1 — File selection (always shown first) */}
-        <div className="invite-select">
+        <div
+          className={`invite-select ${dragActive ? "invite-select--drag" : ""}`}
+          onDragEnter={onDragEnter}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+        >
           <div className="invite-select__actions">
             <button type="button" className="invite-select__action" onClick={() => fileInputRef.current?.click()}>
               <span>📄</span> File
@@ -183,6 +257,13 @@ const copyLink = async () => {
             </button>
           </div>
 
+          {dragActive && (
+            <div className="invite-drop-hint">
+              <span className="invite-drop-hint__icon">📥</span>
+              <span className="invite-drop-hint__text">Drop files to add them to the share</span>
+            </div>
+          )}
+
           <input
             ref={fileInputRef}
             type="file"
@@ -208,39 +289,65 @@ const copyLink = async () => {
 
           {queuedFiles.length > 0 && (
             <div className="invite-select__list">
-              {queuedFiles.map((file, index) => (
-                <div key={`${file.name}-${file.size}-${index}`} className="invite-select__file">
-                  <span className="invite-select__file-ic">{iconForFile(file.name)}</span>
-                  <span className="invite-select__file-name">{file.name}</span>
-                  <span className="invite-select__file-size mono">{formatBytes(file.size)}</span>
-                  <button
-                    type="button"
-                    className="invite-select__file-rm"
-                    onClick={() => setQueuedFiles((prev) => prev.filter((_, i) => i !== index))}
-                    aria-label={`Remove ${file.name}`}
+              {queuedFiles.map((file, index) => {
+                const pct = uploadProgress[file.name];
+                return (
+                  <div key={`${file.name}-${file.size}-${index}`} className="invite-select__file">
+                    <span className="invite-select__file-ic">{iconForFile(file.name)}</span>
+                    <span className="invite-select__file-name">{file.name}</span>
+                    <span className="invite-select__file-size mono">{formatBytes(file.size)}</span>
+                    {uploading && typeof pct === "number" && pct < 1 && (
+                      <span className="invite-select__file-progress mono">{Math.round(pct * 100)}%</span>
+                    )}
+                    <button
+                      type="button"
+                      className="invite-select__file-rm"
+                      onClick={() => setQueuedFiles((prev) => prev.filter((_, i) => i !== index))}
+                      aria-label={`Remove ${file.name}`}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Uploaded (server-hosted) files with download links */}
+          {uploadedFiles.length > 0 && (
+            <div className="invite-uploaded">
+              <p className="invite-uploaded__label">Uploaded files</p>
+              {uploadedFiles.map((f, i) => (
+                <div key={`${f.filename || f.name}-${i}`} className="invite-uploaded__file">
+                  <span className="invite-select__file-ic">{iconForFile(f.name)}</span>
+                  <span className="invite-select__file-name">{f.name}</span>
+                  <a
+                    className="invite-uploaded__link"
+                    href={f.downloadUrl || f.url}
+                    download={f.name}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
-                    ✕
-                  </button>
+                    ⬇ Download
+                  </a>
                 </div>
               ))}
             </div>
           )}
+
+          {uploadError && <p className="invite-upload-error">⚠ {uploadError}</p>}
         </div>
 
-{/* If files selected but not in Anywhere mode yet — prompt to upload & create link */}
+{/* If files selected but not uploaded yet — prompt to upload & create link */}
 {queuedFiles.length > 0 && !showQr && (
           <div className="invite-view__cta-row">
             <button
               type="button"
               className="btn-solid"
-              onClick={() => {
-                // Switch to Anywhere mode (creates a code if none yet) and mark
-                // the share as "uploaded" so the QR/link step appears.
-                onSetNetworkMode(netCode || randomCode());
-                setShared(true);
-              }}
+              disabled={uploading}
+              onClick={handleUploadShare}
             >
-              📤 Upload & Share
+              {uploading ? "📤 Uploading…" : "📤 Upload & Share"}
             </button>
           </div>
         )}
@@ -250,7 +357,8 @@ const copyLink = async () => {
           <div className="invite-view__content">
             <div className="invite-ready">
               <span className="invite-ready__count">
-                {queuedFiles.length} file{queuedFiles.length === 1 ? "" : "s"} ready
+                {uploadedFiles.length || queuedFiles.length} file
+                {(uploadedFiles.length || queuedFiles.length) === 1 ? "" : "s"} ready
               </span>
             </div>
 

@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
-import { AVATARS, avatarColor } from "../lib/avatars.js";
+import { AVATAR_SETS, FRANCHISES, avatarColor } from "../lib/avatars.js";
+
+function initial(name) {
+  return (name || "?").trim().charAt(0).toUpperCase();
+}
 import { getPrefs, setPref } from "../lib/settings.js";
 import { requestNotificationPermission } from "../lib/notifications.js";
 import { SOUND_THEMES, playTheme } from "../lib/sounds.js";
+import Avatar from "./Avatar.jsx";
 import "./ProfileModal.css";
 
 const THEME_KEY = "saa-theme";
@@ -141,10 +146,10 @@ const [notifications, setNotifications] = useState(() => {
               <div className="profile-cover__glow" style={{ background: `radial-gradient(circle at 30% 20%, ${accent}, transparent 60%)` }} />
             </div>
 
-            {/* Identity */}
+{/* Identity */}
             <div className="profile-identity">
               <div className="profile-identity__avatar" style={{ background: accent }}>
-                <span>{self?.avatar ?? "🧑‍💻"}</span>
+                <Avatar value={self?.avatar} alt={self?.name} />
               </div>
               <div className="profile-identity__fields">
                 <input
@@ -168,23 +173,47 @@ const [notifications, setNotifications] = useState(() => {
               </div>
             </div>
 
-            {/* Avatar gallery */}
+{/* Avatar gallery — grouped by franchise */}
             <div className="profile-section">
               <p className="profile-section__label">Choose an avatar</p>
-              <div className="profile-avatars">
-                {AVATARS.map((glyph) => (
-                  <button
-                    key={glyph}
-                    type="button"
-                    className={`profile-avatar-swatch ${self?.avatar === glyph ? "profile-avatar-swatch--active" : ""}`}
-                    style={self?.avatar === glyph ? { boxShadow: `0 0 0 2px ${accent}` } : undefined}
-                    onClick={() => onUpdateProfile({ avatar: glyph })}
-                    aria-label={`Use avatar ${glyph}`}
-                  >
-                    {glyph}
-                  </button>
-                ))}
-              </div>
+              {FRANCHISES.map((franchise) => (
+                <div className="profile-franchise" key={franchise.label}>
+                  <p className="profile-franchise__title">
+                    <span>{franchise.icon}</span> {franchise.label}
+                  </p>
+                  <div className="profile-avatars">
+                    {franchise.names.map((glyphName) => {
+                      const paths = AVATAR_SETS[glyphName] || [];
+                      const glyphPath = paths[0];
+                      const isActive = !!glyphPath && self?.avatar === glyphPath;
+                      return (
+                        <button
+                          key={glyphName}
+                          type="button"
+                          className={`profile-avatar-swatch ${isActive ? "profile-avatar-swatch--active" : ""}`}
+                          style={isActive ? { boxShadow: `0 0 0 2px ${accent}` } : undefined}
+                          onClick={() => {
+                            // When an avatar/icon is picked, also update the name to
+                            // match that character so the radar theme follows along.
+                            setNameDraft(glyphName);
+                            onUpdateProfile({ avatar: glyphPath || "", name: glyphName });
+                          }}
+                          aria-label={`Use avatar ${glyphName}`}
+                          title={glyphName}
+                        >
+                          {glyphPath ? (
+                            <img src={glyphPath} alt={glyphName} draggable={false} />
+                          ) : (
+                            <span className="profile-avatar-swatch__initial" style={{ background: avatarColor(glyphName) }}>
+                              {initial(glyphName)}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         ) : (
