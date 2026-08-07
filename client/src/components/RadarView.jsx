@@ -271,17 +271,28 @@ export default function RadarView({ self, peers, transfers = [], busyPeerIds, se
     gear: theme.gear,
   };
 
-  // Compute the selected peer's node position (percentage) so we can draw a
-  // connection line from the center (self) to that peer.
+// Compute the selected peer's node position (percentage) so we can draw a
+  // curved connection path from the center (self) to that peer.
   const selectedPeer = peers.find((p) => p.id === selectedPeerId) ?? null;
-  let connLine = null;
+  let connCurve = null;
   if (selectedPeer) {
     const angle = hashAngle(selectedPeer.id);
     const radius = hashRadius(selectedPeer.id);
     const rad = (angle * Math.PI) / 180;
-    const x = 50 + radius * Math.cos(rad);
-    const y = 50 + radius * Math.sin(rad);
-    connLine = { x1: 50, y1: 50, x2: x, y2: y };
+    const x2 = 50 + radius * Math.cos(rad);
+    const y2 = 50 + radius * Math.sin(rad);
+    const x1 = 50;
+    const y1 = 50;
+    // Control point offset perpendicular to the straight line to create a bow/arc.
+    const mx = (x1 + x2) / 2;
+    const my = (y1 + y2) / 2;
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const len = Math.hypot(dx, dy) || 1;
+    const bend = 14; // how far the curve bows out
+    const cx = mx + (-dy / len) * bend;
+    const cy = my + (dx / len) * bend;
+    connCurve = { x1, y1, x2, y2, cx, cy, d: `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}` };
   }
 
   const addFiles = (fileList) => {
@@ -360,19 +371,26 @@ export default function RadarView({ self, peers, transfers = [], busyPeerIds, se
             </div>
           )}
 
-          {/* Connection line + flying file particles to the selected peer */}
-          {connLine && (
+          {/* Curved connection + flying file icons carried along the arc */}
+          {connCurve && (
             <svg className="radar__conn" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-              <line
-                x1={connLine.x1} y1={connLine.y1} x2={connLine.x2} y2={connLine.y2}
+              <path
+                d={connCurve.d}
+                fill="none"
                 className={`radar__conn-line ${selectedIsActive ? "radar__conn-line--active" : ""}`}
+              />
+              {/* A second dashed path that animates via stroke-dashoffset for a travelling "data" feel */}
+              <path
+                d={connCurve.d}
+                fill="none"
+                className={`radar__conn-flow ${selectedIsActive ? "radar__conn-flow--active" : ""}`}
               />
               {selectedIsActive && (
                 <g>
-                  <circle className="radar__flight radar__flight--1" cx={connLine.x1} cy={connLine.y1} r="1.6" />
-                  <circle className="radar__flight radar__flight--2" cx={connLine.x1} cy={connLine.y1} r="1.6" />
-                  <circle className="radar__flight radar__flight--3" cx={connLine.x1} cy={connLine.y1} r="1.6" />
-                  <circle className="radar__flight radar__flight--4" cx={connLine.x1} cy={connLine.y1} r="1.6" />
+                  <circle className="radar__flight radar__flight--1" r="1.7" style={{ offsetPath: `path('${connCurve.d}')` }} />
+                  <circle className="radar__flight radar__flight--2" r="1.7" style={{ offsetPath: `path('${connCurve.d}')` }} />
+                  <circle className="radar__flight radar__flight--3" r="1.7" style={{ offsetPath: `path('${connCurve.d}')` }} />
+                  <circle className="radar__flight radar__flight--4" r="1.7" style={{ offsetPath: `path('${connCurve.d}')` }} />
                 </g>
               )}
             </svg>
