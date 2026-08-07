@@ -18,11 +18,11 @@
 
 .radar {
   position: relative;
-  width: min(88vw, 720px);
+  width: min(46vw, 400px);
   aspect-ratio: 1;
   margin: 0 auto;
-  flex: 1;
-  max-width: 720px;
+  flex: 0 0 auto;
+  max-width: 400px;
   border-radius: 50%;
   background: 
     radial-gradient(circle at 50% 50%, rgba(14, 26, 45, 0.95) 0%, rgba(6, 12, 22, 0.98) 100%);
@@ -32,6 +32,22 @@
     inset 0 0 30px rgba(0, 0, 0, 0.8);
   overflow: hidden;
   backdrop-filter: blur(12px);
+  animation: radar-drift 22s ease-in-out infinite;
+  will-change: transform;
+  z-index: 2;
+}
+
+/* Smaller radar that drifts around the whole screen as an animated background */
+@keyframes radar-drift {
+  0%   { transform: translate(0, 0) scale(0.96); }
+  12%  { transform: translate(6vw, -5vh) scale(1); }
+  24%  { transform: translate(12vw, 3vh) scale(0.98); }
+  36%  { transform: translate(4vw, 9vh) scale(1.02); }
+  48%  { transform: translate(-8vw, 6vh) scale(0.97); }
+  60%  { transform: translate(-14vw, -4vh) scale(1); }
+  72%  { transform: translate(-6vw, -10vh) scale(0.98); }
+  84%  { transform: translate(8vw, -7vh) scale(1.02); }
+  100% { transform: translate(0, 0) scale(0.96); }
 }
 
 .radar__rings {
