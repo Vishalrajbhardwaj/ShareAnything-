@@ -8,6 +8,15 @@
 - [x] 5. Push `master` to GitHub
 - [x] 6. Switch back to `main`
 
+## Bug fixes + radar enhancements (this session)
+- [x] Fix AudioContext autoplay warning (defer unlock to real user gesture) — `sounds.js`
+- [x] Add cloud-transfer fallback when direct WebRTC fails — `usePeerConnections.js`
+- [x] Add receiver handler for cloud-transfer signals (auto-download)
+- [x] Radar: connection line + flying file particles to selected peer
+- [x] Radar: capture/screenshot button
+- [x] Radar: file selection panel below radar for selected peer
+- [x] Client build passes
+
 ## Root-cause analysis (cross-laptop sharing)
 - "🌐 This Network" mode groups devices by their **public IP** (server-side `roomFor()`).
   - Same laptop + different browsers → same public IP → same room → devices appear. ✅

@@ -15,16 +15,18 @@ function audioContext() {
 }
 
 // Browsers block AudioContext until the user has interacted with the page
-// (click/tap/keypress). We create & resume it on the very first gesture so
-// later beeps (incoming chat, transfer requests, completion) actually play.
+// (click/tap/keypress). We create & resume it ONLY on the very first real
+// user gesture so later beeps (incoming chat, transfer requests, completion)
+// actually play. Creating/resuming before any gesture triggers Chrome's
+// "AudioContext was not allowed to start" warnings, so we never do that.
 function unlock() {
   if (unlocked) return;
+  unlocked = true;
   const ac = audioContext();
   if (!ac) return;
   if (ac.state === "suspended") {
     ac.resume().catch(() => {});
   }
-  unlocked = true;
 }
 
 if (typeof window !== "undefined") {
@@ -37,8 +39,8 @@ if (typeof window !== "undefined") {
   window.addEventListener("pointerdown", onGesture);
   window.addEventListener("keydown", onGesture);
   window.addEventListener("touchstart", onGesture);
-  // Also try to unlock immediately in case the user already interacted.
-  unlock();
+  // NOTE: no immediate unlock() here — the AudioContext must not be created
+  // until the browser has seen a real user gesture.
 }
 
 function beep(freq, durationMs = 0.12, type = "sine", gain = 0.04, delayMs = 0) {
