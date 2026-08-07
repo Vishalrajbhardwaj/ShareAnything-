@@ -202,6 +202,20 @@
   text-overflow: ellipsis;
 }
 
+/* Proximity tag shown under each peer node — "Nearby" (same Wi-Fi) or
+   "Via link" (joined through a share link/code). Honest, not fake meters. */
+.peer-node__distance {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--tc1, #7bd7ff) 85%, #fff);
+  background: rgba(8, 14, 26, 0.85);
+  border: 1px solid color-mix(in srgb, var(--tc1, #7bd7ff) 35%, transparent);
+  padding: 1px 7px;
+  border-radius: 9px;
+  white-space: nowrap;
+}
+
 /* Star Button */
 .peer-node__star {
   position: absolute;
@@ -331,28 +345,61 @@
   bottom: 12%;
   transform: translateX(-50%);
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  background: rgba(0, 0, 0, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 20px;
-  padding: 8px 16px;
-  backdrop-filter: blur(8px);
+  padding: 14px 20px;
+  backdrop-filter: blur(10px);
+  max-width: min(360px, 86%);
+  text-align: center;
 }
 
 .radar__empty p {
   margin: 0;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.75);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .radar__empty-ping {
   width: 8px;
   height: 8px;
+  flex-shrink: 0;
   border-radius: 50%;
   background: #38ef7d;
   box-shadow: 0 0 8px #38ef7d;
   animation: beacon-pulse 1.5s infinite;
+}
+
+.radar__empty-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #050d1f;
+  background: linear-gradient(135deg, #7bd7ff, #a78bfa);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.radar__empty-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px -8px rgba(123, 215, 255, 0.6);
+}
+
+.radar__empty-sub {
+  font-size: 10.5px;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.5;
+  max-width: 300px;
 }
 
 @media (max-width: 860px) {
@@ -437,6 +484,9 @@
 }
 [data-theme="light"] .radar__empty p {
   color: rgba(11, 22, 38, 0.7);
+}
+[data-theme="light"] .radar__empty-sub {
+  color: rgba(11, 22, 38, 0.45);
 }
 
 /* ===== CHARACTER THEMES ===== */
@@ -1095,9 +1145,91 @@
   50% { opacity: 1; transform: scale(1.4); }
 }
 
+/* Spider-Man / web — webweave ring */
+.peer-char--web .peer-node__glyph::after {
+  border: 2px dashed var(--tc2);
+  animation: pweb-spin 2.4s linear infinite;
+}
+.peer-char--web .peer-node__glyph {
+  animation: pweb-sway 1.8s ease-in-out infinite;
+}
+@keyframes pweb-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes pweb-sway {
+  0%,100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-4px) rotate(2deg); }
+}
+
+/* War Machine / armor — rotating gear ring */
+.peer-char--armor .peer-node__glyph::after {
+  border: 3px dotted var(--tc2);
+  animation: pgear-spin 2s linear infinite;
+}
+@keyframes pgear-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Default / generic — gentle float */
 .peer-char--default .peer-node__glyph {
   animation: avatar-float 3.5s ease-in-out infinite;
+}
+
+/* ===== RADAR-MASTER EFFECTS FOR NEW LABELS ===== */
+.radar-master--web,
+.radar-master--shield,
+.radar-master--panther,
+.radar-master--hex,
+.radar-master--solar,
+.radar-master--wing,
+.radar-master--cyber,
+.radar-master--armor,
+.radar-master--sting,
+.radar-master--mixtape,
+.radar-master--weasley,
+.radar-master--dog,
+.radar-master--ginger,
+.radar-master--tokyo,
+.radar-master--berlin,
+.radar-master--rio,
+.radar-master--nairobi,
+.radar-master--denver,
+.radar-master--helsinki,
+.radar-master--oslo,
+.radar-master--lisbon,
+.radar-master--palermo,
+.radar-master--bogota,
+.radar-master--stockholm,
+.radar-master--copy,
+.radar-master--sharingan,
+.radar-master--swords {
+  background:
+    radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--tc1) 20%, transparent) 0%, transparent 60%);
+  animation: aura-pulse 2.4s ease-in-out infinite;
+}
+.radar-master--web::after {
+  content: "🕸";
+  position: absolute;
+  right: 16%;
+  top: 18%;
+  font-size: 22px;
+  animation: spin-slow 4s linear infinite;
+}
+.radar-master--sharingan::after {
+  content: "👁";
+  position: absolute;
+  left: 14%;
+  top: 20%;
+  font-size: 20px;
+  animation: spin-slow 3s linear infinite;
+}
+.radar-master--swords::after {
+  content: "⚔";
+  position: absolute;
+  right: 14%;
+  top: 22%;
+  font-size: 20px;
+  animation: float-y 2.4s ease-in-out infinite reverse;
 }
 
 

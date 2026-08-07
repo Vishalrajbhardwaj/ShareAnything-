@@ -107,18 +107,21 @@ export function randomAvatar(name) {
   return set[Math.floor(Math.random() * set.length)];
 }
 
-// Character-based theme: each character/franchise gets its own color scheme and
-// animated "aura" style so the radar/dashboard feels alive and themed.
+// Character-based theme: each character gets a UNIQUE color pair + a distinct
+// animation effect so the radar/dashboard feels alive and every peer is unique.
 export function characterTheme(name) {
   const n = String(name ?? "").toLowerCase();
   const is = (...words) => words.some((w) => n.includes(w));
 
-  // Marvel / tech heroes
+  // ---- Marvel / Superhero ----
   if (is("iron man") || is("ironman") || is("iron-man")) {
     return { c1: "#ff3d3d", c2: "#ffb300", label: "tech", glitch: true };
   }
+  if (is("spider-man")) {
+    return { c1: "#e63946", c2: "#1d3557", label: "web", web: true };
+  }
   if (is("captain america") || is("captain-america")) {
-    return { c1: "#3d7bff", c2: "#ff3d3d", label: "patriotic", spark: true };
+    return { c1: "#3d7bff", c2: "#ff3d3d", label: "shield", spark: true };
   }
   if (is("thor")) {
     return { c1: "#7bd7ff", c2: "#8b5cf6", label: "storm", lightning: true };
@@ -126,26 +129,50 @@ export function characterTheme(name) {
   if (is("hulk")) {
     return { c1: "#2ecc71", c2: "#27ae60", label: "strong", shake: true };
   }
+  if (is("black widow")) {
+    return { c1: "#e74c3c", c2: "#111", label: "spy", web: true };
+  }
+  if (is("hawkeye")) {
+    return { c1: "#6f42c1", c2: "#2c3e50", label: "archer", slash: true };
+  }
   if (is("doctor strange") || is("dr strange") || is("dr_strange")) {
     return { c1: "#ff8c42", c2: "#c084fc", label: "magic", mystic: true };
   }
-  if (is("black widow")) {
-    return { c1: "#e74c3c", c2: "#111", label: "spy", };
+  if (is("black panther")) {
+    return { c1: "#111", c2: "#8a5cf6", label: "panther", aura: true };
   }
-  if (is("hawkeye")) {
-    return { c1: "#6f42c1", c2: "#2c3e50", label: "archer", };
+  if (is("scarlet witch")) {
+    return { c1: "#ff2d55", c2: "#e0115f", label: "hex", mystic: true };
+  }
+  if (is("vision")) {
+    return { c1: "#ffd700", c2: "#e74c3c", label: "solar", glow: true };
+  }
+  if (is("falcon")) {
+    return { c1: "#e67e22", c2: "#7f8c8d", label: "wing", speed: true };
+  }
+  if (is("winter soldier")) {
+    return { c1: "#2c3e50", c2: "#e74c3c", label: "cyber", glitch: true };
+  }
+  if (is("war machine")) {
+    return { c1: "#7f8c8d", c2: "#2c3e50", label: "armor", gear: true };
   }
   if (is("ant-man")) {
     return { c1: "#e0332a", c2: "#444", label: "tiny", shrink: true };
   }
+  if (is("wasp")) {
+    return { c1: "#f1c40f", c2: "#111", label: "sting", spark: true };
+  }
   if (is("captain marvel")) {
     return { c1: "#ff2d55", c2: "#ffd700", label: "cosmic", glow: true };
+  }
+  if (is("star-lord")) {
+    return { c1: "#e74c3c", c2: "#f1c40f", label: "mixtape", spark: true };
   }
   if (is("loki")) {
     return { c1: "#2ecc71", c2: "#111", label: "trickster", spark: true };
   }
   if (is("deadpool")) {
-    return { c1: "#e0115f", c2: "#1a1a1a", label: "mercy", };
+    return { c1: "#e0115f", c2: "#1a1a1a", label: "mercy", flame: true };
   }
   if (is("groot")) {
     return { c1: "#8a5a2b", c2: "#4a7c3f", label: "tree", leaves: true };
@@ -159,19 +186,22 @@ export function characterTheme(name) {
   if (is("aquaman")) {
     return { c1: "#0e7bd6", c2: "#2ecc71", label: "ocean", waves: true };
   }
+  if (is("joker")) {
+    return { c1: "#8e44ad", c2: "#2ecc71", label: "chaos", spark: true };
+  }
   if (is("superman")) {
     return { c1: "#3d7bff", c2: "#e74c3c", label: "hero", glow: true };
   }
   if (is("wolverine")) {
     return { c1: "#f39c12", c2: "#c0392b", label: "claw", slash: true };
   }
-  if (is("joker")) {
-    return { c1: "#8e44ad", c2: "#2ecc71", label: "chaos", spark: true };
-  }
 
-  // Harry Potter
+  // ---- Harry Potter ----
   if (is("harry potter") || is("harryporter") || is("harry")) {
     return { c1: "#f1c40f", c2: "#c0392b", label: "wizard", magic: true };
+  }
+  if (is("ron weasley")) {
+    return { c1: "#e74c3c", c2: "#f1c40f", label: "weasley", spark: true };
   }
   if (is("hermione") || is("herminey")) {
     return { c1: "#e67e22", c2: "#f1c40f", label: "wizard", magic: true };
@@ -183,7 +213,13 @@ export function characterTheme(name) {
     return { c1: "#2c3e50", c2: "#8e44ad", label: "potion", bubbles: true };
   }
   if (is("draco") || is("malfoy")) {
-    return { c1: "#7f8c8d", c2: "#2ecc71", label: "slytherin", };
+    return { c1: "#7f8c8d", c2: "#2ecc71", label: "slytherin", glitch: true };
+  }
+  if (is("sirius black")) {
+    return { c1: "#2c3e50", c2: "#7f8c8d", label: "dog", bat: true };
+  }
+  if (is("ginny weasley")) {
+    return { c1: "#e67e22", c2: "#c0392b", label: "ginger", flame: true };
   }
   if (is("hagrid") || is("rubeus")) {
     return { c1: "#8a5a2b", c2: "#5d4037", label: "keeper", leaves: true };
@@ -195,32 +231,62 @@ export function characterTheme(name) {
     return { c1: "#8a5a2b", c2: "#c0392b", label: "sorting", talking: true };
   }
 
-  // Money Heist
+  // ---- Money Heist ----
   if (is("professor") || is("professsor")) {
     return { c1: "#e74c3c", c2: "#111", label: "heist", mask: true };
   }
   if (is("tokyo")) {
-    return { c1: "#e74c3c", c2: "#111", label: "heist", mask: true };
+    return { c1: "#e74c3c", c2: "#1a1a2e", label: "tokyo", mask: true };
   }
   if (is("berlin")) {
-    return { c1: "#c0392b", c2: "#111", label: "heist", mask: true };
+    return { c1: "#c0392b", c2: "#111", label: "berlin", mask: true };
+  }
+  if (is("rio")) {
+    return { c1: "#f39c12", c2: "#2c3e50", label: "rio", glow: true };
+  }
+  if (is("nairobi")) {
+    return { c1: "#e67e22", c2: "#111", label: "nairobi", flame: true };
   }
   if (is("denver")) {
-    return { c1: "#e74c3c", c2: "#2c3e50", label: "heist", mask: true };
+    return { c1: "#e74c3c", c2: "#2c3e50", label: "denver", mask: true };
   }
   if (is("helsinki")) {
-    return { c1: "#d35400", c2: "#111", label: "heist", mask: true };
+    return { c1: "#d35400", c2: "#111", label: "helsinki", shake: true };
+  }
+  if (is("oslo")) {
+    return { c1: "#7f8c8d", c2: "#111", label: "oslo", aura: true };
+  }
+  if (is("lisbon")) {
+    return { c1: "#3498db", c2: "#111", label: "lisbon", waves: true };
+  }
+  if (is("palermo")) {
+    return { c1: "#8e44ad", c2: "#111", label: "palermo", spark: true };
+  }
+  if (is("bogotá") || is("bogota")) {
+    return { c1: "#16a085", c2: "#111", label: "bogota", leaves: true };
+  }
+  if (is("stockholm")) {
+    return { c1: "#f1c40f", c2: "#2c3e50", label: "stockholm", stars: true };
   }
 
-  // Anime
+  // ---- Anime ----
   if (is("naruto")) {
     return { c1: "#f39c12", c2: "#e67e22", label: "ninja", chakra: true };
   }
   if (is("sasuke")) {
     return { c1: "#8e44ad", c2: "#2c3e50", label: "ninja", flame: true };
   }
+  if (is("kakashi")) {
+    return { c1: "#7f8c8d", c2: "#2c3e50", label: "copy", lightning: true };
+  }
+  if (is("itachi")) {
+    return { c1: "#c0392b", c2: "#111", label: "sharingan", aura: true };
+  }
   if (is("luffy") || is("monkey d")) {
     return { c1: "#2ecc71", c2: "#e74c3c", label: "pirate", rubber: true };
+  }
+  if (is("zoro") || is("roronoa")) {
+    return { c1: "#2ecc71", c2: "#111", label: "swords", slash: true };
   }
   if (is("sanji")) {
     return { c1: "#f1c40f", c2: "#2c3e50", label: "cook", flame: true };
@@ -235,8 +301,15 @@ export function characterTheme(name) {
     return { c1: "#f39c12", c2: "#3d7bff", label: "saiyan", aura: true };
   }
 
-  // Default
-  return { c1: "#7bd7ff", c2: "#8b7cf6", label: "default", glow: true };
+  // Fallback: derive a unique color pair + simple effect from the name hash so
+  // ANY custom name still gets a distinct look.
+  let h = 0;
+  for (let i = 0; i < n.length; i += 1) h = (h * 31 + n.charCodeAt(i)) >>> 0;
+  const hue = h % 360;
+  const c1 = `hsl(${hue} 80% 62%)`;
+  const c2 = `hsl(${(hue + 60) % 360} 75% 55%)`;
+  const effects = ["glow", "spark", "speed", "aura", "waves", "stars"];
+  return { c1, c2, label: "default", [effects[h % effects.length]]: true };
 }
 
 export function avatarColor(value) {

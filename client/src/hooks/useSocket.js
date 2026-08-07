@@ -29,7 +29,14 @@ function saveSavedProfile(patch) {
 
 function getNetCodeFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("net") || "";
+  const fromUrl = params.get("net");
+  if (fromUrl) return fromUrl;
+  // DEFAULT TO "THIS NETWORK" MODE (empty code): the server groups every device
+  // sharing the same public IP into one room, so all devices on the same
+  // Wi-Fi / internet connection immediately appear on each other's radar — no
+  // manual code or invite needed. Anyone who wants to reach a device on a
+  // DIFFERENT network can still switch to the 🔗 Anywhere / Invite toggle.
+  return "";
 }
 
 export function useSocket() {

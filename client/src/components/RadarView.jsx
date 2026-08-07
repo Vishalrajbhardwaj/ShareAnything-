@@ -90,7 +90,7 @@ function hashDelay(id) {
   return (h % 20) / 10;
 }
 
-function PeerNode({ peer, isBusy, isSelected, onFiles, onSelect }) {
+function PeerNode({ peer, isBusy, isSelected, onFiles, onSelect, viaLink }) {
   const [dragOver, setDragOver] = useState(false);
   const [fav, setFav] = useState(() => isFavorite(peer.name));
   const inputRef = useRef(null);
@@ -100,6 +100,12 @@ function PeerNode({ peer, isBusy, isSelected, onFiles, onSelect }) {
   const x = 50 + radius * Math.cos(rad);
   const y = 50 + radius * Math.sin(rad);
   const delay = hashDelay(peer.id);
+
+  // Honest proximity label. Browsers can't measure real physical distance, so
+  // we avoid showing a made-up number like "45 m away". Instead:
+  //  - Same network / same Wi-Fi (discovered automatically) => "Nearby"
+  //  - Joined via a link/code from another network           => "Via link"
+  const distanceLabel = viaLink ? "Via link" : "Nearby";
 
   // Per-peer character theme so EACH radar node animates distinctly.
   const peerTheme = characterTheme(peer.name);
@@ -140,6 +146,7 @@ function PeerNode({ peer, isBusy, isSelected, onFiles, onSelect }) {
           <Avatar value={peer.avatar} alt={peer.name} />
         </span>
         <span className="peer-node__label">{peer.name}</span>
+        <span className="peer-node__distance">{distanceLabel}</span>
       </button>
 
       <input
@@ -204,7 +211,7 @@ function RecentTransferRow({ transfer, onRemove }) {
   );
 }
 
-export default function RadarView({ self, peers, transfers = [], busyPeerIds, selectedPeerId, onSendFiles, onSelectPeer, onRemoveTransfer }) {
+export default function RadarView({ self, peers, transfers = [], busyPeerIds, selectedPeerId, netCode, onSendFiles, onSelectPeer, onRemoveTransfer, onOpenInvite }) {
   const activeTransfers = transfers.filter(
     (t) => t.status === "awaiting-approval" || t.status === "connecting" || t.status === "transferring"
   );
@@ -231,7 +238,7 @@ const theme = characterTheme(self?.name);
     "--tc2": theme.c2,
   };
 
-  const effectFlags = {
+const effectFlags = {
     lightning: theme.lightning,
     magic: theme.magic,
     stars: theme.stars,
@@ -254,6 +261,8 @@ const theme = characterTheme(self?.name);
     glow: theme.glow,
     mystic: theme.mystic,
     talking: theme.talking,
+    web: theme.web,
+    gear: theme.gear,
   };
 
   return (
@@ -287,20 +296,35 @@ const theme = characterTheme(self?.name);
         </div>
 
         {peers.map((peer) => (
-          <PeerNode
+<PeerNode
             key={peer.id}
             peer={peer}
             isBusy={busyPeerIds.has(peer.id)}
             isSelected={selectedPeerId === peer.id}
+            viaLink={!!netCode}
             onSelect={onSelectPeer}
             onFiles={(files) => onSendFiles(peer.id, peer.name, files)}
           />
         ))}
 
-        {peers.length === 0 && (
+{peers.length === 0 && (
           <div className="radar__empty">
             <span className="radar__empty-ping" />
-            <p>Searching for nearby devices…</p>
+            <p>
+              {netCode
+                ? "No one on this code yet — share your link so they can join."
+                : "No devices on this network yet."}
+            </p>
+            {onOpenInvite && (
+              <button type="button" className="radar__empty-cta" onClick={onOpenInvite}>
+                🔗 {netCode ? "Share my link" : "Invite a device"}
+              </button>
+            )}
+            <span className="radar__empty-sub">
+              {netCode
+                ? "Codes refresh every 30 minutes."
+                : "For another laptop anywhere, use “Anywhere” to share via a link."}
+            </span>
           </div>
         )}
       </div>

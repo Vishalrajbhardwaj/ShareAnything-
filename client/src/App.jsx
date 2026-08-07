@@ -16,6 +16,7 @@ import Avatar from "./components/Avatar.jsx";
 import Toast from "./components/Toast.jsx";
 import ChatView from "./components/ChatView.jsx";
 import ImagePreview from "./components/ImagePreview.jsx";
+import ScreenEffects from "./components/ScreenEffects.jsx";
 import { getFavorites } from "./lib/favorites.js";
 import { getHistory, addHistoryEntry } from "./lib/history.js";
 import { addChatMessage } from "./lib/chat.js";
@@ -43,27 +44,49 @@ const [showSplash, setShowSplash] = useState(true);
   const [selectedPeerIds, setSelectedPeerIds] = useState([]);
   const [completeQueue, setCompleteQueue] = useState([]);
 const [toastMsg, setToastMsg] = useState("");
-  const [shareDownloadOpen, setShareDownloadOpen] = useState(false);
+const [shareDownloadOpen, setShareDownloadOpen] = useState(false);
   const [chatVersion, setChatVersion] = useState(0); // bumps when a chat message arrives → ChatView re-reads in real-time
   const [unreadChat, setUnreadChat] = useState(0); // total unread chat messages → badge on the Chat nav icon
+  const [onboardingTip, setOnboardingTip] = useState(() => {
+    // First-run onboarding hint: show a friendly tip once, then remember it.
+    try {
+      if (localStorage.getItem("saa-seen-tip")) return "";
+      const tip =
+        new URLSearchParams(window.location.search).get("net")
+          ? "You're on a shared link — files here arrive automatically. Tap the DL button when it appears."
+          : "Pick a device on the radar (or head to 🔗 Invite to share via a link), then drop files to send them.";
+      localStorage.setItem("saa-seen-tip", "1");
+      return tip;
+    } catch {
+      return "";
+    }
+  });
+  const [effectTrigger, setEffectTrigger] = useState(0);
+  const prevPeerCountRef = useRef(0);
   const activeChatPeerRef = useRef(null); // which peer the Chat view is currently showing
   const loggedTransferIds = useRef(new Set());
   const notifiedTransferIds = useRef(new Set());
   const queuedFilesRef = useRef([]);
 
 // When a share link is opened from a fresh tab, the server sends the queued
-  // files via `pendingShare`. Show the download modal automatically.
+  // files via `pendingShare`. Show the download modal automatically — but ONLY
+  // on the visitor's device, never on the link owner who uploaded the files.
+  // The owner is identified by having queued files locally, or by matching the
+  // share's senderId with this device's own socket id.
   useEffect(() => {
-    if (pendingShare && pendingShare.files?.length) {
-      setShareDownloadOpen(true);
-    }
-  }, [pendingShare]);
+    if (!pendingShare || !pendingShare.files?.length) return;
+    const isOwner =
+      queuedFilesRef.current.length > 0 || (self?.id && pendingShare.senderId === self.id);
+    setShareDownloadOpen(!isOwner);
+  }, [pendingShare, self]);
 
 // If we opened a share link (?net=CODE) but haven't received the share data
   // yet (timing race), actively ask the server for it. Without this, the
   // download modal would never open and the visitor would see a blank screen.
+  // The link owner never requests (they already have the files), so the
+  // download modal is never triggered on their own device.
   useEffect(() => {
-    if (connected && netCode) {
+    if (connected && netCode && !queuedFilesRef.current.length) {
       requestShareFiles();
     }
     // Only run when connection/code changes.
@@ -74,7 +97,7 @@ const [toastMsg, setToastMsg] = useState("");
   // haven't received them yet. The owner may publish the files slightly AFTER
   // this visitor connects, so a single request isn't always enough.
   useEffect(() => {
-    if (!connected || !netCode || pendingShare?.files?.length) return;
+    if (!connected || !netCode || pendingShare?.files?.length || queuedFilesRef.current.length) return;
     const id = setInterval(() => requestShareFiles(), 2000);
     return () => clearInterval(id);
   }, [connected, netCode, pendingShare, requestShareFiles]);
@@ -99,6 +122,26 @@ const [toastMsg, setToastMsg] = useState("");
       return fa - fb;
     });
   }, [rawPeers]);
+
+  // Play a random full-screen effect when a new device/peer joins AND when the
+  // socket first connects. Skip the very first render (no peers yet).
+  useEffect(() => {
+    if (rawPeers.length > prevPeerCountRef.current) {
+      setEffectTrigger((n) => n + 1);
+      if (getPrefs().sound) playTheme(getPrefs().soundTheme, "request");
+    }
+    prevPeerCountRef.current = rawPeers.length;
+  }, [rawPeers]);
+
+  // Connection-established flash: once when the socket connects the first time.
+  const didConnRef = useRef(false);
+  useEffect(() => {
+    if (connected && !didConnRef.current) {
+      didConnRef.current = true;
+      setEffectTrigger((n) => n + 1);
+      if (getPrefs().sound) playTheme(getPrefs().soundTheme, "complete");
+    }
+  }, [connected]);
 
   // Log completed transfers to the persistent history panel, once each.
   useEffect(() => {
@@ -325,15 +368,17 @@ onChangeView={(next) => {
         <div className="app-body">
           <main className="app-main">
 {(view === "receive" || view === "radar") && (
-              <RadarView
+<RadarView
                 self={self}
                 peers={peers}
                 transfers={transfers}
                 busyPeerIds={busyPeerIds}
                 selectedPeerId={selectedPeerId}
+                netCode={netCode}
                 onSelectPeer={(peer) => setSelectedPeerId(peer.id)}
                 onSendFiles={sendFilesToPeer}
                 onRemoveTransfer={removeTransfer}
+                onOpenInvite={() => setView("invite")}
               />
             )}
 
@@ -431,6 +476,16 @@ onChangeView={(next) => {
 
 <Toast message={toastMsg} onClose={() => setToastMsg("")} />
 
+      {/* First-run onboarding tip (info toast) */}
+      {onboardingTip && !toastMsg && (
+        <Toast
+          message={onboardingTip}
+          variant="info"
+          duration={5000}
+          onClose={() => setOnboardingTip("")}
+        />
+      )}
+
       {/* Image preview for received images */}
       {receivedImages.length > 0 && (
         <ImagePreview
@@ -453,6 +508,9 @@ onChangeView={(next) => {
           </div>
         </div>
       )}
+
+      {/* Full-screen connection/profile effect (flash, water, electric, sound wave) */}
+      <ScreenEffects trigger={effectTrigger} />
     </div>
   );
 }
