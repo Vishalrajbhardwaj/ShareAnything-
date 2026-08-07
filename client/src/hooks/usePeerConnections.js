@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { sendFiles, createReceiver, triggerDownload, formatSpeed, formatEta } from "../lib/fileTransfer.js";
+import { uploadFile, downloadShareFile } from "../lib/cloudTransfer.js";
 import { getPrefs } from "../lib/settings.js";
 import { isFavorite } from "../lib/favorites.js";
 import { playTheme } from "../lib/sounds.js";
@@ -227,6 +228,53 @@ startRequest(pending.peerId, pending.peerName, pending.files, transferId);
     [startRequest]
   );
 
+  // Cloud transfer fallback: when a direct WebRTC connection can't be
+  // established (different networks, strict NAT, no TURN), upload the pending
+  // files to the server and tell the receiver via a signal so they download
+  // them directly from the server. This makes file sharing work reliably
+  // across any two devices, even when peer-to-peer fails.
+  const sendViaCloud = useCallback(
+    async (transferId, peerId) => {
+      const pending = pendingFiles.current.get(transferId);
+      if (!pending || !pending.files?.length) return;
+      const { peerName, files } = pending;
+
+      // Upload each file to the server.
+      const hosted = [];
+      patchTransfer(transferId, { status: "transferring" });
+      try {
+        for (const file of files) {
+          const res = await uploadFile(file);
+          if (res && res.url) {
+            hosted.push({ name: file.name, size: file.size, type: file.type, url: res.url, downloadUrl: res.downloadUrl || res.url });
+          }
+        }
+      } catch (err) {
+        patchTransfer(transferId, { status: "error", errorMessage: "Cloud fallback upload failed: " + (err?.message || "network error") });
+        return;
+      }
+
+      if (!hosted.length) {
+        patchTransfer(transferId, { status: "error", errorMessage: "Cloud fallback upload returned no files." });
+        return;
+      }
+
+      // Tell the receiver the download URLs via a signal (server just relays it).
+      sendSignal(peerId, { kind: "cloud-transfer", transferId, files: hosted, fromName: self?.name || "Peer" });
+
+      // Mark the send as done — bytes went through the server.
+      patchTransfer(transferId, { status: "done" });
+      pendingFiles.current.delete(transferId);
+      const prefs = getPrefs();
+      if (prefs.sound) playTheme(prefs.soundTheme, "complete");
+      if (prefs.notifications) {
+        notify(`Sent via cloud`, { body: `${hosted.length} file${hosted.length === 1 ? "" : "s"} uploaded to ${peerName}.` });
+      }
+      setTimeout(() => cleanupTransfer(transferId), 2000);
+    },
+    [patchTransfer, sendSignal, self]
+  );
+
   const beginSending = useCallback(
     async (transferId, peerId) => {
       const pending = pendingFiles.current.get(transferId);
@@ -240,7 +288,9 @@ startRequest(pending.peerId, pending.peerName, pending.files, transferId);
 
       entry.watchdog = setTimeout(() => {
         if (entry.pc.connectionState !== "connected") {
-          failTransfer(transferId, "Couldn't connect — the other device may be on a restrictive network.");
+          // Direct P2P failed — fall back to server-hosted cloud transfer so the
+          // files still get through reliably on any network.
+          sendViaCloud(transferId, peerId);
         }
       }, CONNECT_TIMEOUT_MS);
 
@@ -449,10 +499,36 @@ if (prefs.sound) playTheme(prefs.soundTheme, "request");
       }
     };
 
+    // When the sender's direct P2P connection fails, they fall back to uploading
+    // the files to the server and signal us with download URLs. We then fetch and
+    // auto-download each file from the server.
+    const handleCloudTransfer = async ({ transferId, files, fromName }) => {
+      if (!Array.isArray(files) || files.length === 0) return;
+      patchTransfer(transferId, { status: "transferring", peerName: fromName || "Peer" });
+      for (const f of files) {
+        try {
+          await downloadShareFile(f.downloadUrl || f.url, f.name);
+        } catch (err) {
+          patchTransfer(transferId, { status: "error", errorMessage: "Cloud download failed: " + (err?.message || "network error") });
+          return;
+        }
+      }
+      patchTransfer(transferId, { status: "done" });
+      const prefs = getPrefs();
+      if (prefs.sound) playTheme(prefs.soundTheme, "complete");
+      if (prefs.notifications) {
+        notify(`Transfer complete`, { body: `${fromName || "Peer"} sent ${files.length} file${files.length === 1 ? "" : "s"} via cloud.` });
+      }
+    };
+
     const onSignal = ({ fromId, data }) => {
       const { kind, transferId } = data;
       if (kind === "offer") {
         prepareToReceive(transferId, fromId, data.sdp);
+        return;
+      }
+      if (kind === "cloud-transfer") {
+        handleCloudTransfer(data);
         return;
       }
       const entry = runtime.current.get(transferId);
