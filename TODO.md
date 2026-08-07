@@ -4,9 +4,9 @@
 - [x] 1. Stage all changes on `main`
 - [x] 2. Commit with descriptive message
 - [x] 3. Push `main` to GitHub
-- [ ] 4. Update local `master` + merge `main` into it
-- [ ] 5. Push `master` to GitHub
-- [ ] 6. Switch back to `main`
+- [x] 4. Update local `master` + merge `main` into it
+- [x] 5. Push `master` to GitHub
+- [x] 6. Switch back to `main`
 
 ## Root-cause analysis (cross-laptop sharing)
 - "🌐 This Network" mode groups devices by their **public IP** (server-side `roomFor()`).
