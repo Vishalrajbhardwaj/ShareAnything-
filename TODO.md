@@ -3,8 +3,8 @@
 ## Git push + merge task (current)
 - [x] 1. Stage all changes on `main`
 - [x] 2. Commit with descriptive message
-- [ ] 3. Push `main` to GitHub
-- [ ] 4. Merge `main` into `master`
+- [x] 3. Push `main` to GitHub
+- [ ] 4. Update local `master` + merge `main` into it
 - [ ] 5. Push `master` to GitHub
 - [ ] 6. Switch back to `main`
 
