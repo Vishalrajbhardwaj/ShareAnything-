@@ -62,12 +62,15 @@ const [joinDraft, setJoinDraft] = useState("");
     if (!fileList?.length) return;
     const next = Array.from(fileList).filter(Boolean);
     if (!next.length) return;
+    // Changing the selection invalidates any previously generated QR/link —
+    // hide it until the user uploads again.
+    setShared(false);
     setQueuedFiles((prev) => {
       const merged = [...prev, ...next];
       return merged.filter(
         (file, index, array) =>
           index === array.findIndex(
-            (item) => item.name === file.name && item.size === file.size && item.lastModified === file.lastModified
+            (item) => item.name === file.name && item.size === file.size && item.lastModified === item.lastModified
           )
       );
     });
@@ -105,8 +108,10 @@ const [joinDraft, setJoinDraft] = useState("");
     onSetNetworkMode(netCode || randomCode());
     setUploading(true);
     setUploadError("");
+    setShared(false);
     const results = [];
     const progress = {};
+    let failed = false;
     for (const file of queuedFiles) {
       try {
         const res = await uploadFile(file, {
@@ -119,6 +124,7 @@ const [joinDraft, setJoinDraft] = useState("");
         progress[file.name] = 1;
         setUploadProgress({ ...progress });
       } catch (err) {
+        failed = true;
         setUploadError(err?.message || "Upload failed");
         break;
       }
@@ -128,6 +134,12 @@ const [joinDraft, setJoinDraft] = useState("");
       return merged;
     });
     setUploading(false);
+    // Only reveal the QR code + share link once every file uploaded to the
+    // server successfully. If any upload failed, keep the QR hidden and let the
+    // user retry.
+    if (!failed && results.length > 0 && results.length === queuedFiles.length) {
+      setShared(true);
+    }
   };
 
   const sendText = () => {
@@ -168,6 +180,25 @@ const copyLink = async () => {
     setCopied(true);
     clearTimeout(copyTimer.current);
     copyTimer.current = setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Native Web Share API — on mobile this opens the OS share sheet so the user
+  // can send the link via WhatsApp, email, etc. Falls back to copyLink silently.
+  const shareLink = async () => {
+    const shareData = {
+      title: "Share Anything Anywhere",
+      text: `Join my share room${netCode ? ` (code ${netCode})` : ""} and grab the files!`,
+      url: inviteUrl,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {
+        // User cancelled or sharing unavailable — fall through to copy.
+      }
+    }
+    await copyLink();
   };
 
 // QR is only the final step — shown only after the user explicitly clicks
@@ -218,8 +249,10 @@ const copyLink = async () => {
           </button>
         </div>
 
-        <p className="invite-view__hint">
-          Step 1: Pick the files you want to share. {netCode ? "" : "Then switch to Anywhere to create a link."}
+<p className="invite-view__hint">
+          {netCode
+            ? "Step 1: Pick the files you want to share, then tap “Upload & Share” to create your link."
+            : "Step 1: Pick the files, then switch to “Anywhere” to create a share link anyone can open."}
         </p>
 
         {/* Step 1 — File selection (always shown first) */}
@@ -378,8 +411,8 @@ const copyLink = async () => {
             </div>
 
 <div className="invite-view__actions">
-              <button type="button" className={`btn-solid ${copied ? "btn-solid--copied" : ""}`} onClick={copyLink}>
-                {copied ? "✓ Link Copied!" : "Copy Link"}
+              <button type="button" className={`btn-solid ${copied ? "btn-solid--copied" : ""}`} onClick={shareLink}>
+                {copied ? "✓ Link Copied!" : "📤 Share Link"}
               </button>
               <button type="button" className="btn-ghost" onClick={downloadQr}>
                 Download QR

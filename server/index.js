@@ -60,6 +60,123 @@ const app = express();
 app.set("trust proxy", true); // respect X-Forwarded-For when deployed behind a proxy/load balancer
 app.disable("x-powered-by"); // don't advertise Express to the outside world
 
+// ---------------------------------------------------------------------------
+// Security & production hardening
+// ---------------------------------------------------------------------------
+
+// Simple in-memory request logger + rate limiter. Keeps things dependency-free
+// so the deploy stays a single `npm install`. In-memory state is fine here:
+// the server is stateless apart from active rooms/transfers, and a restart
+// resets the counters (acceptable for this app's threat model).
+const REQUEST_LOG = new Map(); // ip -> { count, windowStart }
+const rateLimiter = ({ windowMs = 60_000, max = 60, message = "Too many requests" } = {}) => {
+  return (req, res, next) => {
+    const ip = req.ip || req.socket?.remoteAddress || "unknown";
+    const now = Date.now();
+    const entry = REQUEST_LOG.get(ip) || { count: 0, windowStart: now };
+    if (now - entry.windowStart > windowMs) {
+      entry.count = 0;
+      entry.windowStart = now;
+    }
+    entry.count += 1;
+    REQUEST_LOG.set(ip, entry);
+    // Occasionally prune the map so a flood of unique IPs can't grow it unboundedly.
+    if (REQUEST_LOG.size > 10_000) {
+      for (const [key, value] of REQUEST_LOG) {
+        if (now - value.windowStart > windowMs) REQUEST_LOG.delete(key);
+      }
+    }
+    if (entry.count > max) {
+      res.set("Retry-After", String(Math.ceil(windowMs / 1000)));
+      return res.status(429).json({ error: message });
+    }
+    next();
+  };
+};
+
+// Track per-IP upload bytes so one client can't fill the disk through repeated
+// 1 GB uploads. Simple in-memory counter; resets on restart (acceptable here).
+const uploadBytesByIp = new Map(); // ip -> { bytes, updatedAt }
+const IP_UPLOAD_LIMIT_BYTES = 5 * 1024 * 1024 * 1024; // 5 GB per IP per hour
+const IP_UPLOAD_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+// Total bytes currently sitting in the uploads dir (used by /health and the
+// upload guard). Cheap: one readdir + stat per call; uploads are bounded and
+// auto-expire, so this stays small.
+function countUploads() {
+  let total = 0;
+  try {
+    for (const entry of fs.readdirSync(UPLOAD_DIR)) {
+      try {
+        total += fs.statSync(path.join(UPLOAD_DIR, entry)).size;
+      } catch {
+        // ignore files that vanish between listing and stat
+      }
+    }
+  } catch {
+    // ignore missing dir
+  }
+  return total;
+}
+
+// Security response headers for every request.
+app.use((req, res, next) => {
+  res.set("X-Content-Type-Options", "nosniff");
+  res.set("X-Frame-Options", "DENY");
+  res.set("Referrer-Policy", "no-referrer");
+  res.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  res.set("X-XSS-Protection", "0"); // modern browsers ignore this; kept for legacy
+  // Allow connecting to public STUN servers + the configured TURN server for
+  // WebRTC. `connect-src` must permit the TURN relay host (wildcarded here since
+  // the ICE config is dynamic). Fonts/styles come from Google Fonts + self.
+  res.set(
+    "Content-Security-Policy",
+    [
+      "default-src 'self'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' https://fonts.gstatic.com",
+      "img-src 'self' data: blob:",
+      "connect-src 'self' ws: wss: https://fonts.googleapis.com https://fonts.gstatic.com stun: turn:",
+      "manifest-src 'self'",
+      "worker-src 'self' blob:",
+      "media-src 'self' blob:",
+      "object-src 'none'",
+      "base-uri 'self'",
+    ].join("; ")
+  );
+  if (req.app.get("env") === "production") {
+    res.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
+  }
+  next();
+});
+
+// Request logging (method, path, status, duration) — cheap and useful for
+// debugging upload/download issues in the Render logs.
+app.use((req, res, next) => {
+  const start = Date.now();
+  res.on("finish", () => {
+    const duration = Date.now() - start;
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl} ${res.statusCode} ${duration}ms`);
+  });
+  next();
+});
+
+// Health check for uptime monitors (Render, UptimeRobot, etc.).
+app.get("/health", (req, res) => {
+  res.json({
+    status: "ok",
+    uptime: process.uptime(),
+    memory: process.memoryUsage(),
+    rooms: rooms?.size ?? 0,
+    uploads: countUploads(),
+  });
+});
+
+// ---- Upload/dowload rate limiting (stricter than general API limit) ----
+app.use("/upload", rateLimiter({ windowMs: 60_000, max: 30, message: "Too many upload attempts" }));
+app.use("/download", rateLimiter({ windowMs: 60_000, max: 300, message: "Too many download requests" }));
+
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: { origin: "*" }, // signaling payloads only — no file data ever passes through this server
@@ -108,7 +225,35 @@ function peerList(roomId, excludeId) {
   return [...room.values()].filter((p) => p.id !== excludeId);
 }
 
+// Limit concurrent sockets per IP so one bot can't open thousands of WebSocket
+// connections and exhaust the server's file descriptors. In-memory counters.
+const socketConnections = new Map(); // ip -> { count, windowStart }
+const MAX_SOCKETS_PER_IP = 20;
+
 io.on("connection", (socket) => {
+  const socketIp = socket.handshake.headers["x-forwarded-for"]
+    ? socket.handshake.headers["x-forwarded-for"].split(",")[0].trim()
+    : socket.handshake.address || "unknown";
+
+  const now = Date.now();
+  const conn = socketConnections.get(socketIp) || { count: 0, windowStart: now };
+  if (now - conn.windowStart > 60_000) {
+    conn.count = 0;
+    conn.windowStart = now;
+  }
+  conn.count += 1;
+  socketConnections.set(socketIp, conn);
+  if (conn.count > MAX_SOCKETS_PER_IP) {
+    console.warn(`Socket connection limit reached for ${socketIp}`);
+    socket.disconnect(true);
+    return;
+  }
+
+  socket.on("disconnect", () => {
+    const existing = socketConnections.get(socketIp);
+    if (existing) existing.count = Math.max(0, existing.count - 1);
+  });
+
   const roomId = roomFor(socket);
   const { name, avatar } = randomIdentity();
   const self = { id: socket.id, name, avatar };
@@ -253,6 +398,25 @@ app.post("/upload", upload.single("file"), (req, res) => {
     return res.status(400).json({ error: "No file uploaded" });
   }
   const stored = req.file;
+
+  // Per-IP upload budget: reject the file if this IP has already uploaded more
+  // than the hourly cap, and delete the just-written file so the disk isn't
+  // wasted on a rejected upload.
+  const ip = req.ip || req.socket?.remoteAddress || "unknown";
+  const now = Date.now();
+  const budget = uploadBytesByIp.get(ip) || { bytes: 0, updatedAt: now };
+  if (now - budget.updatedAt > IP_UPLOAD_WINDOW_MS) {
+    budget.bytes = 0;
+    budget.updatedAt = now;
+  }
+  if (budget.bytes + stored.size > IP_UPLOAD_LIMIT_BYTES) {
+    fs.unlink(path.join(UPLOAD_DIR, stored.filename), () => {});
+    return res.status(429).json({ error: "Upload limit reached for this network. Try again later." });
+  }
+  budget.bytes += stored.size;
+  budget.updatedAt = now;
+  uploadBytesByIp.set(ip, budget);
+
   res.json({
     success: true,
     name: stored.originalname,
@@ -330,12 +494,6 @@ setInterval(cleanOldUploads, CLEANUP_INTERVAL_MS);
 
 // In production, serve the built client so the whole app is a single process.
 const clientDist = path.join(__dirname, "..", "client", "dist");
-
-// Security & response headers for every request.
-app.use((req, res, next) => {
-  res.set("X-Content-Type-Options", "nosniff");
-  next();
-});
 
 // Serve the manifest with an explicit charset so Lighthouse/browsers are happy.
 app.get("/manifest.webmanifest", (req, res) => {

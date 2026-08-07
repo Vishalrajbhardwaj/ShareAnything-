@@ -15,10 +15,17 @@ const NOTIF_KEY = "saa-notifications";
 
 function loadTheme() {
   try {
-    return localStorage.getItem(THEME_KEY) || "dark";
+    const stored = localStorage.getItem(THEME_KEY);
+    if (stored === "light" || stored === "dark") return stored;
   } catch {
-    return "dark";
+    // ignore
   }
+  // No saved preference — respect the OS/browser color scheme so the app feels
+  // native on first launch instead of forcing dark mode on light-theme users.
+  if (window.matchMedia?.("(prefers-color-scheme)")?.matches) {
+    return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+  }
+  return "dark";
 }
 
 export default function ProfileModal({
@@ -222,15 +229,19 @@ const [notifications, setNotifications] = useState(() => {
             <div className="settings-row">
               <span className="settings-row__ic">🌗</span>
               <div className="settings-row__text">
-                <p className="settings-row__title">Dark Mode</p>
-                <p className="settings-row__sub">Switch between dark and light appearance</p>
+                <p className="settings-row__title">{theme === "dark" ? "Light Mode" : "Dark Mode"}</p>
+                <p className="settings-row__sub">
+                  {theme === "dark"
+                    ? "Dark mode is on — switch to light appearance"
+                    : "Light mode is on — switch to dark appearance"}
+                </p>
               </div>
               <button
                 className={`switch ${theme === "light" ? "switch--on" : ""}`}
                 onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
                 role="switch"
                 aria-checked={theme === "light"}
-                aria-label="Toggle dark mode"
+                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
               >
                 <span className="switch__knob" />
               </button>

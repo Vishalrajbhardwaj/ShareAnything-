@@ -271,3 +271,115 @@
 [data-theme="light"] .drag-overlay__inner {
   border-color: rgba(14, 123, 214, 0.5);
 }
+
+/* ===== FULL-SCREEN CONNECTION EFFECTS ===== */
+.screen-effect {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* 1) BLINK / FLASH */
+@keyframes screenFlash {
+  0% { opacity: 0; }
+  15% { opacity: 0.85; }
+  40% { opacity: 0; }
+  60% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+.screen-effect--flash::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 50%, rgba(123, 215, 255, 0.5), rgba(167, 139, 250, 0.25) 60%, transparent 100%);
+  animation: screenFlash 1.3s ease-out both;
+}
+
+/* 2) WATER RIPPLE */
+@keyframes waterRipple {
+  0% { transform: translate(-50%, -50%) scale(0.1); opacity: 0.9; }
+  100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
+}
+.screen-effect__water {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 40vmin;
+  height: 40vmin;
+}
+.screen-effect__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid rgba(123, 215, 255, 0.7);
+  box-shadow: 0 0 30px rgba(123, 215, 255, 0.5) inset;
+}
+.screen-effect__ring--1 { animation: waterRipple 1.4s ease-out both; }
+.screen-effect__ring--2 { animation: waterRipple 1.4s ease-out 0.25s both; }
+.screen-effect__ring--3 { animation: waterRipple 1.4s ease-out 0.5s both; }
+
+/* 3) ELECTRIC SURGE */
+@keyframes boltPlasma {
+  0% { transform: scaleY(0.2) rotate(-8deg); opacity: 0; }
+  25% { transform: scaleY(1.1) rotate(4deg); opacity: 1; }
+  50% { transform: scaleY(0.7) rotate(-3deg); opacity: 0.9; }
+  75% { transform: scaleY(1.2) rotate(2deg); opacity: 1; }
+  100% { transform: scaleY(0.3) rotate(0deg); opacity: 0; }
+}
+.screen-effect--electric::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(123, 215, 255, 0.15), transparent, rgba(167, 139, 250, 0.15));
+  animation: screenFlash 0.9s linear both;
+}
+.screen-effect__bolt {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 60vh;
+  background: linear-gradient(180deg, #7bd7ff, #a78bfa, #7bd7ff);
+  border-radius: 3px;
+  filter: drop-shadow(0 0 12px #7bd7ff);
+  transform-origin: center;
+}
+.screen-effect__bolt--1 { animation: boltPlasma 0.9s ease-out both; }
+.screen-effect__bolt--2 { animation: boltPlasma 0.9s ease-out 0.15s both; transform: rotate(30deg); }
+.screen-effect__bolt--3 { animation: boltPlasma 0.9s ease-out 0.3s both; transform: rotate(-30deg); }
+
+/* 4) SOUND WAVE */
+@keyframes soundRise {
+  0% { transform: scaleY(0.15); opacity: 0.9; }
+  50% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(0.15); opacity: 0; }
+}
+.screen-effect__sound {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40vmin;
+}
+.screen-effect__bar {
+  width: 12px;
+  height: 100%;
+  border-radius: 6px;
+  background: linear-gradient(180deg, #7bd7ff, #a78bfa);
+  box-shadow: 0 0 16px rgba(123, 215, 255, 0.6);
+  transform-origin: center;
+}
+.screen-effect__bar--1 { animation: soundRise 1.2s ease-out both; }
+.screen-effect__bar--2 { animation: soundRise 1.2s ease-out 0.1s both; }
+.screen-effect__bar--3 { animation: soundRise 1.2s ease-out 0.2s both; }
+.screen-effect__bar--4 { animation: soundRise 1.2s ease-out 0.3s both; }
+.screen-effect__bar--5 { animation: soundRise 1.2s ease-out 0.4s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .screen-effect { display: none; }
+}
